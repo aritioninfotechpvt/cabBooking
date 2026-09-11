@@ -70,7 +70,7 @@ function App(){
   <aside><div className="brand"><div className="brandMark">R</div><div>Ride<span>Flow</span><small>Mobility platform</small></div></div>
   <div className="switcher"><button className={panel==='Admin'?'chosen':''} onClick={()=>setPanel('Admin')}>Admin</button><button className={panel==='Customer'?'chosen':''} onClick={()=>setPanel('Customer')}>Customer</button><button className={panel==='Driver'?'chosen':''} onClick={()=>setPanel('Driver')}>Driver</button></div>
   <nav>{nav.map((n,i)=><button key={n} className={page===n?'active':''} onClick={()=>setPage(n)}><i>{icons[i]}</i>{n}{n==='Support'&&<b>8</b>}</button>)}</nav>
-  <div className="sideBottom"><div className="help">✦ <span><strong>Need help?</strong><br/>View knowledge base</span></div><div className="avatar">VK</div><div className="user"><strong>Vishal Kumar</strong><small>Super admin</small></div><span>⌄</span></div></aside>
+  <div className="sideBottom"><div className="help">✦ <span><strong>Need help?</strong><br/>View knowledge base</span></div><div className="userProfile"><div className="avatar">VK</div><div className="user"><strong>Vishal Kumar</strong><small>Super admin</small></div><span>⌄</span></div></div></aside>
   <main>
     <header>
       <div>

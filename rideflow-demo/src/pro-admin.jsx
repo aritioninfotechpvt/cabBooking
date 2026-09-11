@@ -509,79 +509,106 @@ function Live({ action, ridesList }) {
 }
 
 function Fare({ action, fareRules, onOpenFareEditor }) {
+ const [selectedCity, setSelectedCity] = useState('Chandigarh');
  const [selectedCategory, setSelectedCategory] = useState('Prime Sedan');
 
- const categoryFares = {
-  'E-Rickshaw': {
-   icon: '🛺⚡',
-   base: '20',
-   perKm: '7',
-   perMin: '1',
-   minFare: '30',
-   nightAllowance: '15% Surcharge (10 PM - 5 AM)',
-   waitingCharge: '₹1.50 / min after 3 min',
-   airportSurcharge: '₹0 (Local Only)',
-   gstRate: '5% GST',
-   surge: '1.1x (Eco Tier)'
+ const cityData = {
+  'Chandigarh': {
+   tier: 'UT Capital Metro',
+   zones: '3 Service Zones (Sector 17, Airport, IT Park)',
+   rates: {
+    'E-Rickshaw': { icon: '🛺⚡', base: '20', perKm: '7', perMin: '1', minFare: '30', nightAllowance: '15% Surcharge', waitingCharge: '₹1.50/min', airportSurcharge: '₹0', surge: '1.1x' },
+    'Auto Rickshaw': { icon: '🛺', base: '30', perKm: '10', perMin: '1.5', minFare: '45', nightAllowance: '20% Surcharge', waitingCharge: '₹2.00/min', airportSurcharge: '₹30', surge: '1.2x' },
+    'Bike Taxi': { icon: '🏍️', base: '25', perKm: '6', perMin: '1', minFare: '35', nightAllowance: '15% Surcharge', waitingCharge: '₹1.00/min', airportSurcharge: '₹20', surge: '1.3x' },
+    'Prime Sedan': { icon: '🚕', base: fareRules.base || '55', perKm: fareRules.perKm || '14', perMin: fareRules.perMin || '2', minFare: fareRules.minFare || '99', nightAllowance: fareRules.nightAllowance || '25% Surcharge', waitingCharge: fareRules.waitingCharge || '₹2.50/min', airportSurcharge: fareRules.airportSurcharge || '₹80', surge: fareRules.surge || '1.5x' },
+    'Outstation SUV': { icon: '🚙', base: '250', perKm: '18', perMin: '3', minFare: '500', nightAllowance: '₹250 / Night', waitingCharge: '₹3.50/min', airportSurcharge: 'State Toll Extra', surge: '1.2x' }
+   }
   },
-  'Auto Rickshaw': {
-   icon: '🛺',
-   base: '30',
-   perKm: '10',
-   perMin: '1.5',
-   minFare: '45',
-   nightAllowance: '20% Surcharge (10 PM - 5 AM)',
-   waitingCharge: '₹2.00 / min after 5 min',
-   airportSurcharge: '₹30 Airport Fee',
-   gstRate: '5% GST',
-   surge: '1.2x (Peak)'
+  'Mohali': {
+   tier: 'Tech Hub Zone',
+   zones: '2 Service Zones (Phase 7, Industrial Area)',
+   rates: {
+    'E-Rickshaw': { icon: '🛺⚡', base: '18', perKm: '6.5', perMin: '1', minFare: '25', nightAllowance: '15% Surcharge', waitingCharge: '₹1.20/min', airportSurcharge: '₹0', surge: '1.0x' },
+    'Auto Rickshaw': { icon: '🛺', base: '28', perKm: '9.5', perMin: '1.5', minFare: '40', nightAllowance: '18% Surcharge', waitingCharge: '₹1.80/min', airportSurcharge: '₹25', surge: '1.1x' },
+    'Bike Taxi': { icon: '🏍️', base: '22', perKm: '5.5', perMin: '1', minFare: '30', nightAllowance: '12% Surcharge', waitingCharge: '₹1.00/min', airportSurcharge: '₹15', surge: '1.2x' },
+    'Prime Sedan': { icon: '🚕', base: '50', perKm: '13', perMin: '2', minFare: '89', nightAllowance: '20% Surcharge', waitingCharge: '₹2.20/min', airportSurcharge: '₹50', surge: '1.3x' },
+    'Outstation SUV': { icon: '🚙', base: '240', perKm: '17', perMin: '3', minFare: '480', nightAllowance: '₹220 / Night', waitingCharge: '₹3.20/min', airportSurcharge: 'State Toll Extra', surge: '1.1x' }
+   }
   },
-  'Bike Taxi': {
-   icon: '🏍️',
-   base: '25',
-   perKm: '6',
-   perMin: '1',
-   minFare: '35',
-   nightAllowance: '15% Surcharge (10 PM - 5 AM)',
-   waitingCharge: '₹1.00 / min after 3 min',
-   airportSurcharge: '₹20 Toll Pass',
-   gstRate: '5% GST',
-   surge: '1.3x (Rain Surge)'
+  'Zirakpur': {
+   tier: 'Highway Corridor',
+   zones: '1 Service Zone (VIP Road & Highway Hub)',
+   rates: {
+    'E-Rickshaw': { icon: '🛺⚡', base: '15', perKm: '6', perMin: '1', minFare: '20', nightAllowance: '10% Surcharge', waitingCharge: '₹1.00/min', airportSurcharge: '₹0', surge: '1.0x' },
+    'Auto Rickshaw': { icon: '🛺', base: '25', perKm: '9', perMin: '1.2', minFare: '35', nightAllowance: '15% Surcharge', waitingCharge: '₹1.50/min', airportSurcharge: '₹20', surge: '1.1x' },
+    'Bike Taxi': { icon: '🏍️', base: '20', perKm: '5', perMin: '1', minFare: '25', nightAllowance: '10% Surcharge', waitingCharge: '₹1.00/min', airportSurcharge: '₹10', surge: '1.1x' },
+    'Prime Sedan': { icon: '🚕', base: '45', perKm: '12', perMin: '1.8', minFare: '79', nightAllowance: '15% Surcharge', waitingCharge: '₹2.00/min', airportSurcharge: '₹40', surge: '1.2x' },
+    'Outstation SUV': { icon: '🚙', base: '220', perKm: '16', perMin: '2.5', minFare: '450', nightAllowance: '₹200 / Night', waitingCharge: '₹3.00/min', airportSurcharge: 'State Toll Extra', surge: '1.1x' }
+   }
   },
-  'Prime Sedan': {
-   icon: '🚕',
-   base: fareRules.base || '55',
-   perKm: fareRules.perKm || '14',
-   perMin: fareRules.perMin || '2',
-   minFare: fareRules.minFare || '99',
-   nightAllowance: fareRules.nightAllowance || '25% Night Allowance (10 PM - 5 AM)',
-   waitingCharge: fareRules.waitingCharge || '₹2.50 / min after 5 min',
-   airportSurcharge: fareRules.airportSurcharge || '₹80 Airport Surcharge',
-   gstRate: '5% GST',
-   surge: fareRules.surge || '1.5x (High Peak)'
+  'Delhi NCR': {
+   tier: 'Mega Metropolis',
+   zones: '8 Service Zones (Central, Gurgaon, Noida, Airport T3)',
+   rates: {
+    'E-Rickshaw': { icon: '🛺⚡', base: '25', perKm: '8', perMin: '1.2', minFare: '35', nightAllowance: '20% Surcharge', waitingCharge: '₹2.00/min', airportSurcharge: '₹0', surge: '1.3x' },
+    'Auto Rickshaw': { icon: '🛺', base: '35', perKm: '12', perMin: '2', minFare: '55', nightAllowance: '25% Surcharge', waitingCharge: '₹2.50/min', airportSurcharge: '₹50', surge: '1.4x' },
+    'Bike Taxi': { icon: '🏍️', base: '30', perKm: '7.5', perMin: '1.5', minFare: '40', nightAllowance: '20% Surcharge', waitingCharge: '₹1.50/min', airportSurcharge: '₹30', surge: '1.5x' },
+    'Prime Sedan': { icon: '🚕', base: '70', perKm: '16', perMin: '2.5', minFare: '120', nightAllowance: '30% Surcharge', waitingCharge: '₹3.00/min', airportSurcharge: '₹100 (Toll + MCD)', surge: '1.8x' },
+    'Outstation SUV': { icon: '🚙', base: '300', perKm: '20', perMin: '4', minFare: '600', nightAllowance: '₹300 / Night', waitingCharge: '₹4.00/min', airportSurcharge: 'MCD Toll Extra', surge: '1.5x' }
+   }
   },
-  'Outstation SUV': {
-   icon: '🚙',
-   base: '250',
-   perKm: '18',
-   perMin: '3',
-   minFare: '500',
-   nightAllowance: '₹250 Driver Night Allowance / Night',
-   waitingCharge: '₹3.50 / min idle',
-   airportSurcharge: 'State Toll & Parking Extra',
-   gstRate: '12% GST',
-   surge: '1.2x (Weekend)'
+  'Shimla': {
+   tier: 'Hill Station & Mountain Route',
+   zones: '2 Service Zones (Mall Road & Ridge Slope)',
+   rates: {
+    'E-Rickshaw': { icon: '🛺⚡', base: '30', perKm: '10', perMin: '2', minFare: '50', nightAllowance: '25% Surcharge', waitingCharge: '₹2.00/min', airportSurcharge: '₹0', surge: '1.2x' },
+    'Auto Rickshaw': { icon: '🛺', base: '45', perKm: '14', perMin: '2.5', minFare: '70', nightAllowance: '30% Surcharge', waitingCharge: '₹3.00/min', airportSurcharge: '₹0', surge: '1.3x' },
+    'Bike Taxi': { icon: '🏍️', base: '35', perKm: '9', perMin: '1.5', minFare: '50', nightAllowance: '25% Surcharge', waitingCharge: '₹2.00/min', airportSurcharge: '₹0', surge: '1.4x' },
+    'Prime Sedan': { icon: '🚕', base: '90', perKm: '19', perMin: '3', minFare: '150', nightAllowance: '35% Hill Surcharge', waitingCharge: '₹4.00/min', airportSurcharge: 'Green Tax Extra', surge: '1.6x' },
+    'Outstation SUV': { icon: '🚙', base: '350', perKm: '24', perMin: '5', minFare: '800', nightAllowance: '₹350 Driver Night Fee', waitingCharge: '₹5.00/min', airportSurcharge: 'Green Tax Included', surge: '1.5x' }
+   }
   }
  };
 
- const activeFare = categoryFares[selectedCategory] || categoryFares['Prime Sedan'];
+ const activeCity = cityData[selectedCity] || cityData['Chandigarh'];
+ const activeFare = activeCity.rates[selectedCategory] || activeCity.rates['Prime Sedan'];
 
  return (
   <>
-   <ModuleHeader title="Fares & zones" subtitle="Configure city coverage, per-km rates, night allowance, waiting charges and surge pricing." button="+ Add service pricing rule" action={action} />
+   <ModuleHeader title="Fares & zones" subtitle="Configure city-wise rate cards, location zone pricing, night allowance and surge rules." button="+ Add city zone" action={action} />
 
+   {/* City / Location Selector Header Bar */}
+   <div style={{ background: '#ffffff', padding: '14px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '16px' }} className="dark-theme-panel">
+    <div style={{ display: 'flex', justifyContent: 'space-between', itemsCenter: 'center', marginBottom: '10px' }}>
+     <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📍 Select City / Operational Location:</span>
+     <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: '600' }}>● Active Location: <strong>{selectedCity}</strong> ({activeCity.tier})</span>
+    </div>
+    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+     {Object.keys(cityData).map(city => (
+      <button
+       key={city}
+       onClick={() => setSelectedCity(city)}
+       style={{
+        border: '1.5px solid',
+        borderColor: selectedCity === city ? '#218d63' : '#cbd5e1',
+        background: selectedCity === city ? '#218d63' : '#f8fafc',
+        color: selectedCity === city ? '#ffffff' : '#334155',
+        padding: '7px 14px',
+        borderRadius: '8px',
+        font: '600 12px Inter, sans-serif',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease'
+       }}
+      >
+       📍 {city}
+      </button>
+     ))}
+    </div>
+   </div>
+
+   {/* Service Category Pills */}
    <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-    {Object.keys(categoryFares).map(cat => (
+    {Object.keys(activeCity.rates).map(cat => (
      <button
       key={cat}
       onClick={() => setSelectedCategory(cat)}
@@ -599,7 +626,7 @@ function Fare({ action, fareRules, onOpenFareEditor }) {
        gap: '6px'
       }}
      >
-      <span>{categoryFares[cat].icon}</span> {cat}
+      <span>{activeCity.rates[cat].icon}</span> {cat}
      </button>
     ))}
    </div>
@@ -607,24 +634,24 @@ function Fare({ action, fareRules, onOpenFareEditor }) {
    <div className="pSplit">
     <LeafletZoneMap />
     <section className="pPanel pRule">
-     <h3>{activeFare.icon} {selectedCategory} · Detailed Fare Breakup</h3>
-     <p>Chandigarh & Tri-City Rate Card Components</p>
+     <h3>{activeFare.icon} {selectedCategory} · {selectedCity} Rate Card</h3>
+     <p>{activeCity.zones}</p>
+     <div key="city"><span>Location / Region <b>{selectedCity} ({activeCity.tier})</b></span></div>
      <div key="base"><span>Base Fare <b>₹{activeFare.base}</b></span></div>
      <div key="km"><span>Per Km Rate <b>₹{activeFare.perKm} / km</b></span></div>
-     <div key="min"><span>Per Minute Ride Time <b>₹{activeFare.perMin} / min</b></span></div>
-     <div key="night"><span>Night Shift Allowance (10 PM - 5 AM) <b>{activeFare.nightAllowance}</b></span></div>
+     <div key="min"><span>Per Minute Ride Charge <b>₹{activeFare.perMin} / min</b></span></div>
+     <div key="night"><span>Night Shift Allowance <b>{activeFare.nightAllowance}</b></span></div>
      <div key="wait"><span>Driver Waiting Charge <b>{activeFare.waitingCharge}</b></span></div>
-     <div key="airport"><span>Airport / Toll Surcharge <b>{activeFare.airportSurcharge}</b></span></div>
-     <div key="gst"><span>Government Tax Rate <b>{activeFare.gstRate}</b></span></div>
+     <div key="airport"><span>Location Surcharge / Toll <b>{activeFare.airportSurcharge}</b></span></div>
      <div key="minfare"><span>Minimum Trip Fare <b>₹{activeFare.minFare}</b></span></div>
-     <div key="surge"><span>Demand Surge Multiplier <b>{activeFare.surge}</b></span></div>
-     <button className="primary pFull" onClick={onOpenFareEditor}>Edit {selectedCategory} Fare Breakup</button>
+     <div key="surge"><span>Location Surge Multiplier <b>{activeFare.surge}</b></span></div>
+     <button className="primary pFull" onClick={onOpenFareEditor}>Edit {selectedCity} ({selectedCategory}) Fare Card</button>
     </section>
    </div>
    <div className="pCards">
-    <Mini label="Base & Per Km" value="Configured" note="5 vehicle categories" icon="⌖" />
-    <Mini label="Night Allowance" value="Active (10PM-5AM)" note="25% surcharge" icon="🌙" />
-    <Mini label="Waiting & Tolls" value="Automated" note="GPS idle tracker" icon="◷" />
+    <Mini label="City Selected" value={selectedCity} note={activeCity.tier} icon="📍" />
+    <Mini label="Location Service Zones" value={activeCity.zones.split(' (')[0]} note="GPS geofenced" icon="◇" />
+    <Mini label="Location Base Rate" value={`₹${activeFare.base} base | ₹${activeFare.perKm}/km`} note={`${selectedCategory} in ${selectedCity}`} icon="₹" />
    </div>
   </>
  );

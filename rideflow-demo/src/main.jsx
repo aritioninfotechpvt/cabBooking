@@ -81,6 +81,7 @@ function App(){
  const [notice,setNotice]=useState('');
  const [darkMode,setDarkMode]=useState(false);
  const [ridesList,setRidesList]=useState(initialRides);
+ const [actionTrigger, setActionTrigger] = useState(null);
 
  useEffect(()=>{
   if(darkMode){
@@ -89,6 +90,11 @@ function App(){
     document.body.classList.remove('dark-theme');
   }
  },[darkMode]);
+
+ const handleTopAction = (btn) => {
+  setActionTrigger(btn);
+  setTimeout(() => setActionTrigger(null), 300);
+ };
 
  const handleLogin = (role, email, name, avatar, defaultPage) => {
   setSession({
@@ -155,14 +161,14 @@ function App(){
         {subtitle && <p className="headerSubtitle">{subtitle}</p>}
       </div>
       <div className="topActions">
-        {btnLabel && btnLabel !== 'Manual booking' && <button className="outline" onClick={()=>action(btnLabel+' requested')}>+ {btnLabel}</button>}
+        {btnLabel && btnLabel !== 'Manual booking' && <button className="outline" onClick={() => handleTopAction(btnLabel)}>+ {btnLabel}</button>}
         <button className="iconBtn" onClick={()=>setDarkMode(!darkMode)} title="Toggle Dark/Light Mode">{darkMode ? '☀️' : '🌙'}</button>
         <button className="iconBtn bell">♧<em>3</em></button>
         <button className="primary" onClick={()=>setModal(true)}>+ New booking</button>
       </div>
     </header>
     {notice&&<div className="toast">✓ {notice}</div>}
-    {panel==='SaaS Owner'?<SaasSuperAdminView page={page} action={action}/>:panel==='Customer'?<CustomerPanelView page={page} action={action}/>:panel==='Driver'?<DriverPanelView page={page} action={action}/>:<ProAdmin page={page} action={action} ridesList={ridesList} setRidesList={setRidesList}/>} 
+    {panel==='SaaS Owner'?<SaasSuperAdminView page={page} action={action} actionTrigger={actionTrigger}/>:panel==='Customer'?<CustomerPanelView page={page} action={action}/>:panel==='Driver'?<DriverPanelView page={page} action={action}/>:<ProAdmin page={page} action={action} ridesList={ridesList} setRidesList={setRidesList} actionTrigger={actionTrigger}/>} 
   </main>
   {modal&&<BookingModal close={()=>setModal(false)} onAddBooking={addBooking}/>} 
  </div>

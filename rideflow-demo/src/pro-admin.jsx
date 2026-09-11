@@ -705,7 +705,7 @@ function Standard({ page, rowsData, action, ridesList, fareRules, onOpenFareEdit
  );
 }
 
-export function ProAdmin({ page, action, ridesList, setRidesList }) {
+export function ProAdmin({ page, action, ridesList, setRidesList, actionTrigger }) {
  const [rowsData, setRowsData] = useState(initialRows);
  const [showKycModal, setShowKycModal] = useState(false);
  const [showFareModal, setShowFareModal] = useState(false);
@@ -717,6 +717,19 @@ export function ProAdmin({ page, action, ridesList, setRidesList }) {
   minFare: '99',
   surge: '1.5x (High Peak)'
  });
+
+ React.useEffect(() => {
+  if (!actionTrigger) return;
+  if (actionTrigger.includes('vehicle') || actionTrigger === 'Add vehicle') {
+   setShowVehicleModal(true);
+  } else if (actionTrigger.includes('driver') || actionTrigger === 'Add driver') {
+   setShowKycModal(true);
+  } else if (actionTrigger.includes('zone') || actionTrigger.includes('city') || actionTrigger === 'Add city') {
+   setShowFareModal(true);
+  } else {
+   action(actionTrigger + ' requested');
+  }
+ }, [actionTrigger]);
 
  const handleAddVehicle = (newVeh) => {
   const row = [newVeh.plate, newVeh.category, newVeh.driver, newVeh.compliance, newVeh.status];
@@ -796,9 +809,18 @@ const initialTenants = [
  { id: 'TNT-105', name: 'Highland Cabs Shimla', slug: 'shimla.rideflow.io', plan: 'Starter ($99/mo)', fee: '$99', drivers: '28', rides: '190/day', status: 'Maintenance' },
 ];
 
-export function SaasSuperAdminView({ page, action }) {
+export function SaasSuperAdminView({ page, action, actionTrigger }) {
  const [tenants, setTenants] = useState(initialTenants);
  const [showTenantModal, setShowTenantModal] = useState(false);
+
+ React.useEffect(() => {
+  if (!actionTrigger) return;
+  if (actionTrigger.includes('tenant') || actionTrigger === 'Provision tenant') {
+   setShowTenantModal(true);
+  } else {
+   action(actionTrigger + ' requested');
+  }
+ }, [actionTrigger]);
  const [featureFlags, setFeatureFlags] = useState([
   { key: 'whatsapp', name: 'WhatsApp OTP & SMS Gateway', desc: 'Automated 2FA and ride updates via WhatsApp Business API', active: true, plan: 'All Tenants' },
   { key: 'whitelabel', name: 'Custom Subdomain & White-Label Domain Routing', desc: 'Allows cab operators to connect custom domain (e.g. cabs.client.com)', active: true, plan: 'Enterprise' },

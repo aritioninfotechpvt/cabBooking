@@ -216,26 +216,53 @@ function KycModal({ close, onDecision }) {
 
 // Fare Rules Editor Modal Component
 function FareEditorModal({ close, currentRules, onSave }) {
- const [base, setBase] = useState(currentRules.base);
- const [perKm, setPerKm] = useState(currentRules.perKm);
- const [perMin, setPerMin] = useState(currentRules.perMin);
- const [minFare, setMinFare] = useState(currentRules.minFare);
- const [surge, setSurge] = useState(currentRules.surge);
+ const [base, setBase] = useState(currentRules.base || '55');
+ const [perKm, setPerKm] = useState(currentRules.perKm || '14');
+ const [perMin, setPerMin] = useState(currentRules.perMin || '2');
+ const [minFare, setMinFare] = useState(currentRules.minFare || '99');
+ const [nightAllowance, setNightAllowance] = useState(currentRules.nightAllowance || '25% Night Allowance (10 PM - 5 AM)');
+ const [waitingCharge, setWaitingCharge] = useState(currentRules.waitingCharge || '₹2.50 / min after 5 min');
+ const [airportSurcharge, setAirportSurcharge] = useState(currentRules.airportSurcharge || '₹80 Airport Surcharge');
+ const [surge, setSurge] = useState(currentRules.surge || '1.5x (High Peak)');
 
  return (
   <div className="modalBack">
-   <div className="modal" style={{ width: '480px' }}>
+   <div className="modal" style={{ width: '540px' }}>
     <button className="close" onClick={close}>×</button>
-    <span className="step">FARES & SURGE CONFIGURATION</span>
-    <h2>Edit Fare Rules · Chandigarh Sedan</h2>
-    <label>Base Fare (₹)<input value={base} onChange={e => setBase(e.target.value)} /></label>
-    <label>Per Kilometer Rate (₹)<input value={perKm} onChange={e => setPerKm(e.target.value)} /></label>
-    <label>Per Minute Rate (₹)<input value={perMin} onChange={e => setPerMin(e.target.value)} /></label>
-    <label>Minimum Trip Fare (₹)<input value={minFare} onChange={e => setMinFare(e.target.value)} /></label>
-    <label>Peak Demand Surge Multiplier<select value={surge} onChange={e => setSurge(e.target.value)}><option>1.0x (Normal)</option><option>1.25x (Moderate)</option><option>1.5x (High Peak)</option><option>2.0x (Extreme Surge)</option></select></label>
+    <span className="step">FARES & BREAKUP CONFIGURATION</span>
+    <h2>Edit Detailed Fare Breakup Rules</h2>
+
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+     <label>Base Fare (₹)<input value={base} onChange={e => setBase(e.target.value)} /></label>
+     <label>Per Kilometer Rate (₹)<input value={perKm} onChange={e => setPerKm(e.target.value)} /></label>
+     <label>Per Minute Ride Charge (₹)<input value={perMin} onChange={e => setPerMin(e.target.value)} /></label>
+     <label>Minimum Trip Fare (₹)<input value={minFare} onChange={e => setMinFare(e.target.value)} /></label>
+    </div>
+
+    <label>Night Shift Allowance (10 PM – 5 AM)
+     <input value={nightAllowance} onChange={e => setNightAllowance(e.target.value)} placeholder="e.g. 25% Surcharge or ₹150 Flat" />
+    </label>
+
+    <label>Driver Waiting / Idle Charge
+     <input value={waitingCharge} onChange={e => setWaitingCharge(e.target.value)} placeholder="e.g. ₹2.50 / min after 5 min" />
+    </label>
+
+    <label>Airport / Toll Surcharge
+     <input value={airportSurcharge} onChange={e => setAirportSurcharge(e.target.value)} placeholder="e.g. ₹80 Airport Fee" />
+    </label>
+
+    <label>Peak Demand Surge Multiplier
+     <select value={surge} onChange={e => setSurge(e.target.value)}>
+      <option>1.0x (Normal)</option>
+      <option>1.25x (Moderate)</option>
+      <option>1.5x (High Peak)</option>
+      <option>2.0x (Extreme Surge)</option>
+     </select>
+    </label>
+
     <div className="modalActions">
      <button onClick={close}>Cancel</button>
-     <button className="primary" onClick={() => { onSave({ base, perKm, perMin, minFare, surge }); close(); }}>Save Fare Rules</button>
+     <button className="primary" onClick={() => { onSave({ base, perKm, perMin, minFare, nightAllowance, waitingCharge, airportSurcharge, surge }); close(); }}>Save Complete Fare Breakup</button>
     </div>
    </div>
   </div>
@@ -255,12 +282,15 @@ function DetailExtras({ page }) {
     <button onClick={() => ask('Open route playback')}>Route playback</button>
    </section>
    <section className="fareBreak">
-    <h3>Fare breakup</h3>
-    <p>Base fare <b>₹55</b></p>
-    <p>Distance 14.2 km <b>₹198</b></p>
-    <p>Time charge <b>₹48</b></p>
-    <p>Tax <b>₹41</b></p>
-    <p>Total <b>₹342</b></p>
+    <h3>Itemized Fare Breakup</h3>
+    <p>Base fare <b>₹55.00</b></p>
+    <p>Distance charge (14.2 km @ ₹14/km) <b>₹198.80</b></p>
+    <p>Ride time charge (24 min @ ₹2/min) <b>₹48.00</b></p>
+    <p>Night shift allowance (25%) <b>₹75.45</b></p>
+    <p>Waiting / driver idle charge (6 min) <b>₹15.00</b></p>
+    <p>Airport pickup surcharge <b>₹80.00</b></p>
+    <p>Taxes & GST (5%) <b>₹23.60</b></p>
+    <p style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '8px', marginTop: '6px' }}><strong>Total Trip Fare</strong> <b style={{ fontSize: '14px', color: '#16a34a' }}>₹495.85</b></p>
    </section>
    <div className="drawerActions">
     <button onClick={() => ask('Cancel booking', 'Cancellation fee and refund options will be shown.')}>Cancel / refund</button>
@@ -479,21 +509,76 @@ function Live({ action, ridesList }) {
 }
 
 function Fare({ action, fareRules, onOpenFareEditor }) {
- const [selectedCategory, setSelectedCategory] = useState('E-Rickshaw');
+ const [selectedCategory, setSelectedCategory] = useState('Prime Sedan');
 
  const categoryFares = {
-  'E-Rickshaw': { icon: '🛺⚡', base: '20', perKm: '7', perMin: '1', minFare: '30', surge: '1.1x (Eco Tier)' },
-  'Auto Rickshaw': { icon: '🛺', base: '30', perKm: '10', perMin: '1.5', minFare: '45', surge: '1.2x (Peak)' },
-  'Bike Taxi': { icon: '🏍️', base: '25', perKm: '6', perMin: '1', minFare: '35', surge: '1.3x (Rain Surge)' },
-  'Prime Sedan': { icon: '🚕', base: fareRules.base || '55', perKm: fareRules.perKm || '14', perMin: fareRules.perMin || '2', minFare: fareRules.minFare || '99', surge: fareRules.surge || '1.5x (High Peak)' },
-  'Outstation SUV': { icon: '🚙', base: '250', perKm: '18', perMin: '3', minFare: '500', surge: '1.2x (Weekend)' }
+  'E-Rickshaw': {
+   icon: '🛺⚡',
+   base: '20',
+   perKm: '7',
+   perMin: '1',
+   minFare: '30',
+   nightAllowance: '15% Surcharge (10 PM - 5 AM)',
+   waitingCharge: '₹1.50 / min after 3 min',
+   airportSurcharge: '₹0 (Local Only)',
+   gstRate: '5% GST',
+   surge: '1.1x (Eco Tier)'
+  },
+  'Auto Rickshaw': {
+   icon: '🛺',
+   base: '30',
+   perKm: '10',
+   perMin: '1.5',
+   minFare: '45',
+   nightAllowance: '20% Surcharge (10 PM - 5 AM)',
+   waitingCharge: '₹2.00 / min after 5 min',
+   airportSurcharge: '₹30 Airport Fee',
+   gstRate: '5% GST',
+   surge: '1.2x (Peak)'
+  },
+  'Bike Taxi': {
+   icon: '🏍️',
+   base: '25',
+   perKm: '6',
+   perMin: '1',
+   minFare: '35',
+   nightAllowance: '15% Surcharge (10 PM - 5 AM)',
+   waitingCharge: '₹1.00 / min after 3 min',
+   airportSurcharge: '₹20 Toll Pass',
+   gstRate: '5% GST',
+   surge: '1.3x (Rain Surge)'
+  },
+  'Prime Sedan': {
+   icon: '🚕',
+   base: fareRules.base || '55',
+   perKm: fareRules.perKm || '14',
+   perMin: fareRules.perMin || '2',
+   minFare: fareRules.minFare || '99',
+   nightAllowance: fareRules.nightAllowance || '25% Night Allowance (10 PM - 5 AM)',
+   waitingCharge: fareRules.waitingCharge || '₹2.50 / min after 5 min',
+   airportSurcharge: fareRules.airportSurcharge || '₹80 Airport Surcharge',
+   gstRate: '5% GST',
+   surge: fareRules.surge || '1.5x (High Peak)'
+  },
+  'Outstation SUV': {
+   icon: '🚙',
+   base: '250',
+   perKm: '18',
+   perMin: '3',
+   minFare: '500',
+   nightAllowance: '₹250 Driver Night Allowance / Night',
+   waitingCharge: '₹3.50 / min idle',
+   airportSurcharge: 'State Toll & Parking Extra',
+   gstRate: '12% GST',
+   surge: '1.2x (Weekend)'
+  }
  };
 
- const activeFare = categoryFares[selectedCategory] || categoryFares['E-Rickshaw'];
+ const activeFare = categoryFares[selectedCategory] || categoryFares['Prime Sedan'];
 
  return (
   <>
-   <ModuleHeader title="Fares & zones" subtitle="Configure city coverage, service pricing cards (Bike, Auto, E-Rickshaw, Sedan) and surge pricing." button="+ Add service pricing rule" action={action} />
+   <ModuleHeader title="Fares & zones" subtitle="Configure city coverage, per-km rates, night allowance, waiting charges and surge pricing." button="+ Add service pricing rule" action={action} />
 
    <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
     {Object.keys(categoryFares).map(cat => (
@@ -522,20 +607,24 @@ function Fare({ action, fareRules, onOpenFareEditor }) {
    <div className="pSplit">
     <LeafletZoneMap />
     <section className="pPanel pRule">
-     <h3>{activeFare.icon} {selectedCategory} · Rate Card</h3>
-     <p>Chandigarh & Tri-City Pricing Structure</p>
-     <div key="base"><span>Base fare <b>₹{activeFare.base}</b></span></div>
-     <div key="km"><span>Per km rate <b>₹{activeFare.perKm}</b></span></div>
-     <div key="min"><span>Per minute rate <b>₹{activeFare.perMin}</b></span></div>
-     <div key="minfare"><span>Minimum trip fare <b>₹{activeFare.minFare}</b></span></div>
-     <div key="surge"><span>Demand surge multiplier <b>{activeFare.surge}</b></span></div>
-     <button className="primary pFull" onClick={onOpenFareEditor}>Edit {selectedCategory} Fare Card</button>
+     <h3>{activeFare.icon} {selectedCategory} · Detailed Fare Breakup</h3>
+     <p>Chandigarh & Tri-City Rate Card Components</p>
+     <div key="base"><span>Base Fare <b>₹{activeFare.base}</b></span></div>
+     <div key="km"><span>Per Km Rate <b>₹{activeFare.perKm} / km</b></span></div>
+     <div key="min"><span>Per Minute Ride Time <b>₹{activeFare.perMin} / min</b></span></div>
+     <div key="night"><span>Night Shift Allowance (10 PM - 5 AM) <b>{activeFare.nightAllowance}</b></span></div>
+     <div key="wait"><span>Driver Waiting Charge <b>{activeFare.waitingCharge}</b></span></div>
+     <div key="airport"><span>Airport / Toll Surcharge <b>{activeFare.airportSurcharge}</b></span></div>
+     <div key="gst"><span>Government Tax Rate <b>{activeFare.gstRate}</b></span></div>
+     <div key="minfare"><span>Minimum Trip Fare <b>₹{activeFare.minFare}</b></span></div>
+     <div key="surge"><span>Demand Surge Multiplier <b>{activeFare.surge}</b></span></div>
+     <button className="primary pFull" onClick={onOpenFareEditor}>Edit {selectedCategory} Fare Breakup</button>
     </section>
    </div>
    <div className="pCards">
-    <Mini label="Services Active" value="5 categories" note="Bike, Auto, E-Rickshaw, Sedan, SUV" icon="⌖" />
-    <Mini label="Service zones" value="6" note="Map polygon zones" icon="◇" />
-    <Mini label="Surge rules" value="4" note="Demand based" icon="↗" />
+    <Mini label="Base & Per Km" value="Configured" note="5 vehicle categories" icon="⌖" />
+    <Mini label="Night Allowance" value="Active (10PM-5AM)" note="25% surcharge" icon="🌙" />
+    <Mini label="Waiting & Tolls" value="Automated" note="GPS idle tracker" icon="◷" />
    </div>
   </>
  );

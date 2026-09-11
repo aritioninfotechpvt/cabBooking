@@ -598,9 +598,127 @@ function KycPage({ page, rowsData, action, onOpenKycModal }) {
 }
 
 function Live({ action, ridesList }) {
+ const [searchQuery, setSearchQuery] = useState('');
+ const [statusFilter, setStatusFilter] = useState('all');
+
+ const trackingDataset = [
+  { id: 'RF-10842', customer: 'Aarav Sharma', service: 'Prime Sedan', driver: 'Rakesh Kumar', rating: '4.92 ★', plate: 'PB 65 AB 2183', pickup: 'Sector 17, Chandigarh', drop: 'Airport Road, Mohali', fare: '₹342', status: 'In progress', time: '09:42 AM', comment: 'Very polite driver, clean cab, arrived on time.' },
+  { id: 'RF-10841', customer: 'Simran Kaur', service: 'Auto Rickshaw', driver: 'Gurpreet Singh', rating: '4.88 ★', plate: 'PB 65 EX 9091', pickup: 'Zirakpur Bus Stand', drop: 'Elante Mall, Chandigarh', fare: '₹186', status: 'Completed', time: '09:22 AM', comment: 'Smooth ride, knows all Mohali shortcuts!' },
+  { id: 'RF-10840', customer: 'Karan Mehta', service: 'Bike Taxi', driver: 'Aman Verma', rating: '4.65 ★', plate: 'PB 65 BX 4012', pickup: 'Phase 7, Mohali', drop: 'Sector 35, Chandigarh', fare: '₹94', status: 'Driver arriving', time: '09:18 AM', comment: 'Quick pickup, provided clean extra helmet.' },
+  { id: 'RF-10839', customer: 'Neha Gupta', service: 'Outstation SUV', driver: 'Rajesh Saini', rating: '4.75 ★', plate: 'PB 65 SU 8812', pickup: 'Chandigarh Metro', drop: 'Mall Road, Shimla', fare: '₹4,850', status: 'In progress', time: '09:08 AM', comment: 'Punctual driver, safe mountain route driving.' }
+ ];
+
+ const filteredTrips = useMemo(() => {
+  return trackingDataset.filter(t => {
+   const text = `${t.id} ${t.customer} ${t.service} ${t.driver} ${t.plate} ${t.pickup} ${t.drop} ${t.comment}`.toLowerCase();
+   const matchesSearch = text.includes(searchQuery.toLowerCase());
+   const matchesStatus = statusFilter === 'all' || t.status.toLowerCase().includes(statusFilter.toLowerCase());
+   return matchesSearch && matchesStatus;
+  });
+ }, [searchQuery, statusFilter]);
+
  return (
   <>
    <ModuleHeader title="Live rides" subtitle="Real-time trip dispatch, location tracking and safety monitoring." button="+ Manual booking" action={action} />
+
+   {/* Universal Cab / Fleet Search Engine */}
+   <section className="pPanel" style={{ marginBottom: '16px' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+     <div>
+      <h3 style={{ margin: 0 }}>🔍 Universal Cab & Route Live Tracker</h3>
+      <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>Search live trips by Booking ID, Driver Name, Vehicle Plate Number, Route, or Customer Review Rating.</p>
+     </div>
+     <div style={{ display: 'flex', gap: '6px' }}>
+      <button onClick={() => setStatusFilter('all')} style={{ padding: '6px 12px', fontSize: '11px', borderRadius: '6px', border: '1px solid #cbd5e1', background: statusFilter === 'all' ? '#218d63' : '#ffffff', color: statusFilter === 'all' ? '#ffffff' : '#334155', cursor: 'pointer' }}>All ({trackingDataset.length})</button>
+      <button onClick={() => setStatusFilter('in progress')} style={{ padding: '6px 12px', fontSize: '11px', borderRadius: '6px', border: '1px solid #cbd5e1', background: statusFilter === 'in progress' ? '#0284c7' : '#ffffff', color: statusFilter === 'in progress' ? '#ffffff' : '#334155', cursor: 'pointer' }}>In Progress (2)</button>
+      <button onClick={() => setStatusFilter('driver arriving')} style={{ padding: '6px 12px', fontSize: '11px', borderRadius: '6px', border: '1px solid #cbd5e1', background: statusFilter === 'driver arriving' ? '#ea580c' : '#ffffff', color: statusFilter === 'driver arriving' ? '#ffffff' : '#334155', cursor: 'pointer' }}>Arriving (1)</button>
+     </div>
+    </div>
+
+    <div style={{ position: 'relative', marginBottom: '14px' }}>
+     <input
+      value={searchQuery}
+      onChange={e => setSearchQuery(e.target.value)}
+      placeholder="🔍 Search by Booking ID (e.g. RF-10842), Driver (e.g. Rakesh Kumar), Vehicle Plate (PB 65 AB 2183), or Route..."
+      style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontSize: '13px', outline: 'none' }}
+     />
+    </div>
+
+    {/* Search Results List */}
+    <div style={{ display: 'grid', gap: '10px' }}>
+     {filteredTrips.map(t => (
+      <div key={t.id} style={{ background: '#ffffff', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }} className="dark-theme-panel">
+       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <div>
+         <strong style={{ fontSize: '13px', color: '#1e293b' }}>{t.id}</strong> · <span style={{ color: '#218d63', fontWeight: 'bold' }}>{t.service}</span> <code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '11px' }}>{t.plate}</code>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+         <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#eab308' }}>{t.rating}</span>
+         <Badge>{t.status}</Badge>
+        </div>
+       </div>
+
+       <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr', gap: '10px', fontSize: '12px', marginBottom: '10px' }}>
+        <div>
+         <span style={{ color: '#64748b' }}>📍 Route:</span><br />
+         <strong>{t.pickup} ➔ {t.drop}</strong>
+        </div>
+        <div>
+         <span style={{ color: '#64748b' }}>👤 Customer & Driver:</span><br />
+         <strong>{t.customer}</strong> (Driver: {t.driver})
+        </div>
+        <div>
+         <span style={{ color: '#64748b' }}>💵 Fare & Dispatch Time:</span><br />
+         <strong>{t.fare}</strong> ({t.time})
+        </div>
+       </div>
+
+       <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '11px', marginBottom: '10px' }} className="dark-theme-panel">
+        💬 <strong>Customer Review:</strong> <em>"{t.comment}"</em>
+       </div>
+
+       <div style={{ display: 'flex', gap: '8px' }}>
+        <button className="primary" onClick={() => {
+         Swal.fire({
+          title: `📍 GPS Locked — ${t.id}`,
+          text: `Vehicle ${t.plate} (${t.driver}) active on route ${t.pickup} ➔ ${t.drop}.`,
+          icon: 'info',
+          confirmButtonColor: '#218d63'
+         });
+         action(`Focused Leaflet GPS map on cab ${t.plate} (${t.id})`);
+        }} style={{ fontSize: '11px', padding: '5px 12px' }}>
+         📍 Track Cab on GPS Map
+        </button>
+
+        <button className="primary" onClick={() => {
+         Swal.fire({
+          title: `⭐ Customer Review Audit`,
+          text: `Customer ${t.customer} rated ${t.driver} ${t.rating}: "${t.comment}"`,
+          icon: 'success',
+          confirmButtonColor: '#0284c7'
+         });
+         action(`Inspected review rating for ${t.driver}`);
+        }} style={{ background: '#0284c7', borderColor: '#0284c7', fontSize: '11px', padding: '5px 12px' }}>
+         ⭐ Inspect Review Rating
+        </button>
+
+        <button onClick={() => {
+         Swal.fire({
+          title: `📞 Call Bridge Initiated`,
+          text: `Connecting admin dispatch line to driver ${t.driver} (${t.plate})...`,
+          icon: 'question',
+          confirmButtonColor: '#218d63'
+         });
+         action(`Initiated call bridge to driver ${t.driver}`);
+        }} style={{ fontSize: '11px', padding: '5px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#334155', borderRadius: '6px', cursor: 'pointer' }}>
+         📞 Contact Driver
+        </button>
+       </div>
+      </div>
+     ))}
+    </div>
+   </section>
+
    <div className="pSplit live">
     <LeafletLiveMap />
     <section className="pPanel pQueue">

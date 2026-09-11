@@ -671,7 +671,7 @@ function ControlPanel({ page, action }) {
  );
 }
 
-function Standard({ page, rowsData, action, ridesList, fareRules, onOpenFareEditor, onOpenKycModal }) {
+function Standard({ page, rowsData, action, ridesList, fareRules, onOpenFareEditor, onOpenKycModal, onOpenVehicleModal }) {
  if (page === 'Drivers & KYC' || page === 'Customer onboarding') return <KycPage page={page} rowsData={rowsData} action={action} onOpenKycModal={onOpenKycModal} />;
  if (page === 'Live rides') return <Live action={action} ridesList={ridesList} />;
  if (page === 'Fares & zones') return <Fare action={action} fareRules={fareRules} onOpenFareEditor={onOpenFareEditor} />;
@@ -680,9 +680,19 @@ function Standard({ page, rowsData, action, ridesList, fareRules, onOpenFareEdit
  const [button, subtitle] = labels[page] || ['+ New item', 'Manage this area'];
  return (
   <>
-   <ModuleHeader title={page} subtitle={subtitle} button={button} action={action} />
+   <div className="moduleHeadInline" style={{ marginBottom: '16px' }}>
+    <div>
+     <h2>{page} Directory</h2>
+     <p>{subtitle}</p>
+    </div>
+    {page === 'Vehicles' ? (
+     <button className="primary" onClick={onOpenVehicleModal}>+ Add Vehicle to Fleet</button>
+    ) : (
+     <button className="primary" onClick={() => action(button + ' requested')}>+ {button}</button>
+    )}
+   </div>
    <div className="pCards">
-    <Mini label="Total records" value={page === 'Payments & payouts' ? '₹2.84L' : page === 'Notifications' ? '11' : '48'} note="Updated today" icon="▦" />
+    <Mini label="Total records" value={page === 'Payments & payouts' ? '₹2.84L' : page === 'Notifications' ? '11' : String(rowsData[page]?.length || 48)} note="Updated today" icon="▦" />
     <Mini label="Active" value={page === 'Safety & SOS' ? '0 alerts' : '36'} note="Current status" icon="◉" />
     <Mini label="Needs action" value={page === 'Commissions' ? '3 rules' : '6'} note="Review required" icon="!" />
    </div>
@@ -699,6 +709,7 @@ export function ProAdmin({ page, action, ridesList, setRidesList }) {
  const [rowsData, setRowsData] = useState(initialRows);
  const [showKycModal, setShowKycModal] = useState(false);
  const [showFareModal, setShowFareModal] = useState(false);
+ const [showVehicleModal, setShowVehicleModal] = useState(false);
  const [fareRules, setFareRules] = useState({
   base: '55',
   perKm: '14',
@@ -706,6 +717,16 @@ export function ProAdmin({ page, action, ridesList, setRidesList }) {
   minFare: '99',
   surge: '1.5x (High Peak)'
  });
+
+ const handleAddVehicle = (newVeh) => {
+  const row = [newVeh.plate, newVeh.category, newVeh.driver, newVeh.compliance, newVeh.status];
+  setRowsData(prev => ({
+   ...prev,
+   'Vehicles': [row, ...(prev['Vehicles'] || [])]
+  }));
+  setShowVehicleModal(false);
+  action(`Vehicle ${newVeh.plate} (${newVeh.category}) added to fleet successfully`);
+ };
 
  const handleKycDecision = (decision) => {
   setRowsData(prev => {
@@ -723,9 +744,23 @@ export function ProAdmin({ page, action, ridesList, setRidesList }) {
 
  return (
   <div className="proAdmin">
-   {page === 'Overview' ? <Overview action={action} rowsData={rowsData} ridesList={ridesList} /> : <Standard page={page} rowsData={rowsData} action={action} ridesList={ridesList} fareRules={fareRules} onOpenFareEditor={() => setShowFareModal(true)} onOpenKycModal={() => setShowKycModal(true)} />}
+   {page === 'Overview' ? (
+    <Overview action={action} rowsData={rowsData} ridesList={ridesList} />
+   ) : (
+    <Standard
+     page={page}
+     rowsData={rowsData}
+     action={action}
+     ridesList={ridesList}
+     fareRules={fareRules}
+     onOpenFareEditor={() => setShowFareModal(true)}
+     onOpenKycModal={() => setShowKycModal(true)}
+     onOpenVehicleModal={() => setShowVehicleModal(true)}
+    />
+   )}
    {showKycModal && <KycModal close={() => setShowKycModal(false)} onDecision={handleKycDecision} />}
    {showFareModal && <FareEditorModal close={() => setShowFareModal(false)} currentRules={fareRules} onSave={(updated) => { setFareRules(updated); action('Fare rules and surge rates updated successfully'); }} />}
+   {showVehicleModal && <VehicleModal close={() => setShowVehicleModal(false)} onAddVehicle={handleAddVehicle} />}
   </div>
  );
 }
@@ -1034,3 +1069,79 @@ function TenantModal({ close, onAddTenant }) {
   </div>
  );
 }
+
+function VehicleModal({ close, onAddVehicle }) {
+ const [plate, setPlate] = useState('PB 65 AB ' + Math.floor(1000 + Math.random() * 9000));
+ const [category, setCategory] = useState('E-Rickshaw (Electric)');
+ const [driver, setDriver] = useState('Gurpreet Singh');
+ const [compliance, setCompliance] = useState('Verified');
+ const [status, setStatus] = useState('Active');
+
+ const handleConfirm = () => {
+  if (!plate.trim()) return;
+  onAddVehicle({
+   plate,
+   category,
+   driver,
+   compliance,
+   status
+  });
+ };
+
+ return (
+  <div className="modalBack">
+   <div className="modal" style={{ width: '520px' }}>
+    <button className="close" onClick={close}>×</button>
+    <span className="step">VEHICLE FLEET ONBOARDING</span>
+    <h2>Add New Vehicle to Fleet</h2>
+
+    <label>Registration Plate Number
+     <input value={plate} onChange={e => setPlate(e.target.value)} placeholder="e.g. PB 65 AB 2183" />
+    </label>
+
+    <label>Vehicle Service Category
+     <select value={category} onChange={e => setCategory(e.target.value)}>
+      <option>E-Rickshaw (Electric)</option>
+      <option>Auto Rickshaw</option>
+      <option>Bike Taxi</option>
+      <option>Prime Sedan</option>
+      <option>Outstation SUV</option>
+      <option>Rental Hatchback</option>
+     </select>
+    </label>
+
+    <label>Assigned Fleet Driver
+     <select value={driver} onChange={e => setDriver(e.target.value)}>
+      <option>Gurpreet Singh</option>
+      <option>Rakesh Kumar</option>
+      <option>Aman Verma</option>
+      <option>Unassigned</option>
+     </select>
+    </label>
+
+    <label>RC & Compliance Status
+     <select value={compliance} onChange={e => setCompliance(e.target.value)}>
+      <option>Verified</option>
+      <option>Insurance Expiring Soon</option>
+      <option>Pending PUC</option>
+      <option>Action Needed</option>
+     </select>
+    </label>
+
+    <label>Operational Status
+     <select value={status} onChange={e => setStatus(e.target.value)}>
+      <option>Active</option>
+      <option>In Maintenance</option>
+      <option>Suspended</option>
+     </select>
+    </label>
+
+    <div className="modalActions">
+     <button onClick={close}>Cancel</button>
+     <button className="primary" onClick={handleConfirm}>Add Vehicle to Fleet</button>
+    </div>
+   </div>
+  </div>
+ );
+}
+

@@ -14,6 +14,30 @@ const initialRides = [
 const nav = ['Overview','Live rides','Bookings','Customer onboarding','Drivers & KYC','Vendors & fleet','Vehicles','Service catalogue','Cities & geo fences','Fares & zones','Payments & payouts','Wallet & ledger','Commissions','Coupons & referrals','Notifications','Safety & SOS','Support','Reports','Audit logs','Roles & settings','Integrations & compliance'];
 const icons = ['▦','◉','▤','♙','♧','▣','▱','◫','⌖','◇','₹','▤','%','◇','♧','!','?','↗','☷','⚙','⌁'];
 
+const pageLabels = {
+ 'Customer onboarding':['Invite customer','Review onboarding queue'],
+ 'Drivers & KYC':['Add driver','Approve KYC and documents'],
+ 'Vendors & fleet':['Add vendor','Manage fleet contracts and KYC'],
+ 'Vehicles':['Add vehicle','Manage vehicle compliance'],
+ 'Payments & payouts':['Create payout','Approve refunds and settlements'],
+ 'Commissions':['Create rule','Set commission and incentive rules'],
+ 'Coupons':['Create coupon','Promotions and referral discounts'],
+ 'Notifications':['Create campaign','Push, SMS and email delivery'],
+ 'Safety & SOS':['Open safety case','Live safety incidents and disputes'],
+ 'Support':['Create ticket','Support conversations and escalation'],
+ 'Reports':['Build report','Performance and finance exports'],
+ 'Roles & settings':['Add admin role','Role, permissions and integrations'],
+ 'Service catalogue':['Add service','Manage cab, auto, bike, rental and outstation categories'],
+ 'Cities & geo fences':['Add city','Set serviceable polygons, airport and restricted zones'],
+ 'Wallet & ledger':['Adjust wallet','Review credits, debits and referral rewards'],
+ 'Coupons & referrals':['Create promotion','Manage customer and driver referrals'],
+ 'Audit logs':['Export audit log','Track every sensitive admin action'],
+ 'Integrations & compliance':['Configure integration','Maps, payments, OTP, WhatsApp, GST and policy controls'],
+ 'Overview':['Manual booking','Monitor operations, financial health and urgent actions'],
+ 'Live rides':['Manual booking','Real-time trip dispatch, location tracking and safety monitoring'],
+ 'Fares & zones':['Add city zone','Configure city coverage, fare cards, rental/outstation rules and surge pricing']
+};
+
 function Stat({label, value, change, icon, tone}) { return <div className="stat"><div><p>{label}</p><h2>{value}</h2><span className={change?.startsWith('+') ? 'up':'muted'}>{change}</span></div><div className={'statIcon '+tone}>{icon}</div></div> }
 function Status({children}) { return <span className={'status '+(String(children||'').toLowerCase().replaceAll(' ','-'))}>{children}</span> }
 
@@ -40,15 +64,29 @@ function App(){
  };
 
  const action=(m)=>{setNotice(m);setTimeout(()=>setNotice(''),2600)};
+ const [btnLabel, subtitle] = pageLabels[page] || ['', ''];
 
  return <div className="app">
   <aside><div className="brand"><div className="brandMark">R</div><div>Ride<span>Flow</span><small>Mobility platform</small></div></div>
   <div className="switcher"><button className={panel==='Admin'?'chosen':''} onClick={()=>setPanel('Admin')}>Admin</button><button className={panel==='Customer'?'chosen':''} onClick={()=>setPanel('Customer')}>Customer</button><button className={panel==='Driver'?'chosen':''} onClick={()=>setPanel('Driver')}>Driver</button></div>
   <nav>{nav.map((n,i)=><button key={n} className={page===n?'active':''} onClick={()=>setPage(n)}><i>{icons[i]}</i>{n}{n==='Support'&&<b>8</b>}</button>)}</nav>
   <div className="sideBottom"><div className="help">✦ <span><strong>Need help?</strong><br/>View knowledge base</span></div><div className="avatar">VK</div><div className="user"><strong>Vishal Kumar</strong><small>Super admin</small></div><span>⌄</span></div></aside>
-  <main><header><div><p className="crumb">RideFlow / {panel}</p><h1>{page}</h1></div><div className="topActions"><button className="iconBtn" onClick={()=>setDarkMode(!darkMode)} title="Toggle Dark/Light Mode">{darkMode ? '☀️' : '🌙'}</button><button className="iconBtn bell">♧<em>3</em></button><button className="primary" onClick={()=>setModal(true)}>+ New booking</button></div></header>
-  {notice&&<div className="toast">✓ {notice}</div>}
-  {panel==='Customer'?<CustomerDemo action={action}/>:panel==='Driver'?<DriverDemo action={action}/>:<ProAdmin page={page} action={action} ridesList={ridesList} setRidesList={setRidesList}/>} 
+  <main>
+    <header>
+      <div>
+        <p className="crumb">RideFlow / {panel} / {page}</p>
+        <h1>{page}</h1>
+        {subtitle && <p className="headerSubtitle">{subtitle}</p>}
+      </div>
+      <div className="topActions">
+        {btnLabel && btnLabel !== 'Manual booking' && <button className="outline" onClick={()=>action(btnLabel+' requested')}>+ {btnLabel}</button>}
+        <button className="iconBtn" onClick={()=>setDarkMode(!darkMode)} title="Toggle Dark/Light Mode">{darkMode ? '☀️' : '🌙'}</button>
+        <button className="iconBtn bell">♧<em>3</em></button>
+        <button className="primary" onClick={()=>setModal(true)}>+ New booking</button>
+      </div>
+    </header>
+    {notice&&<div className="toast">✓ {notice}</div>}
+    {panel==='Customer'?<CustomerDemo action={action}/>:panel==='Driver'?<DriverDemo action={action}/>:<ProAdmin page={page} action={action} ridesList={ridesList} setRidesList={setRidesList}/>} 
   </main>
   {modal&&<BookingModal close={()=>setModal(false)} onAddBooking={addBooking}/>} 
  </div>

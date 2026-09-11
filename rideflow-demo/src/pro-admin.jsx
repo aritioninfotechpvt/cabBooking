@@ -84,17 +84,8 @@ function Badge({ children }) {
  return <span className={'pBadge ' + val}>{children}</span>;
 }
 
-function ModuleHeader({ title, subtitle, button, action }) {
- return (
-  <div className="moduleHeadInline">
-   <div>
-    <p className="crumb">Admin / {title}</p>
-    <h2>{title}</h2>
-    <p>{subtitle}</p>
-   </div>
-   <button className="primary" onClick={() => action(button + ' requested')}>+ {button}</button>
-  </div>
- );
+function ModuleHeader() {
+ return null;
 }
 
 function Mini({ label, value, note, icon }) {
@@ -616,11 +607,11 @@ export function ProAdmin({ page, action, ridesList, setRidesList }) {
  };
 
  return (
-  <main className="proAdmin">
+  <div className="proAdmin">
    {page === 'Overview' ? <Overview action={action} rowsData={rowsData} ridesList={ridesList} /> : <Standard page={page} rowsData={rowsData} action={action} ridesList={ridesList} fareRules={fareRules} onOpenFareEditor={() => setShowFareModal(true)} onOpenKycModal={() => setShowKycModal(true)} />}
    {showKycModal && <KycModal close={() => setShowKycModal(false)} onDecision={handleKycDecision} />}
    {showFareModal && <FareEditorModal close={() => setShowFareModal(false)} currentRules={fareRules} onSave={(updated) => { setFareRules(updated); action('Fare rules and surge rates updated successfully'); }} />}
-  </main>
+  </div>
  );
 }
 

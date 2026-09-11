@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
 import './pro-admin.css';
-import { ProAdmin } from './pro-admin';
+import { ProAdmin, SaasSuperAdminView } from './pro-admin';
 
 const initialRides = [
   { id: 'RF-10842', customer: 'Aarav Sharma', service: 'Prime Sedan', driver: 'Rakesh Kumar', pickup: 'Sector 17, Chandigarh', drop: 'Airport Road, Mohali', fare: '₹342', status: 'In progress', time: '09:42 AM' },
@@ -13,6 +13,9 @@ const initialRides = [
 
 const nav = ['Overview','Live rides','Bookings','Customer onboarding','Drivers & KYC','Vendors & fleet','Vehicles','Service catalogue','Cities & geo fences','Fares & zones','Payments & payouts','Wallet & ledger','Commissions','Coupons & referrals','Notifications','Safety & SOS','Support','Reports','Audit logs','Roles & settings','Integrations & compliance'];
 const icons = ['▦','◉','▤','♙','♧','▣','▱','◫','⌖','◇','₹','▤','%','◇','♧','!','?','↗','☷','⚙','⌁'];
+
+const saasNav = ['SaaS Tenants', 'Subscriptions & MRR', 'Global Features', 'Platform Health', 'SaaS Settings'];
+const saasIcons = ['🌐', '💰', '⚡', '🖥️', '⚙'];
 
 const pageLabels = {
  'Customer onboarding':['Invite customer','Review onboarding queue'],
@@ -35,15 +38,20 @@ const pageLabels = {
  'Integrations & compliance':['Configure integration','Maps, payments, OTP, WhatsApp, GST and policy controls'],
  'Overview':['Manual booking','Monitor operations, financial health and urgent actions'],
  'Live rides':['Manual booking','Real-time trip dispatch, location tracking and safety monitoring'],
- 'Fares & zones':['Add city zone','Configure city coverage, fare cards, rental/outstation rules and surge pricing']
+ 'Fares & zones':['Add city zone','Configure city coverage, fare cards, rental/outstation rules and surge pricing'],
+ 'SaaS Tenants': ['Provision tenant', 'Manage onboarded cab operator instances & client subscriptions'],
+ 'Subscriptions & MRR': ['Export MRR', 'Monthly recurring revenue, plan breakdown & client invoices'],
+ 'Global Features': ['Add feature flag', 'Enable or disable enterprise modules per tenant'],
+ 'Platform Health': ['System audit', 'Monitor server uptime, API latency and WebSocket connections'],
+ 'SaaS Settings': ['Update platform keys', 'Configure global white-label branding and cloud infrastructure']
 };
 
 function Stat({label, value, change, icon, tone}) { return <div className="stat"><div><p>{label}</p><h2>{value}</h2><span className={change?.startsWith('+') ? 'up':'muted'}>{change}</span></div><div className={'statIcon '+tone}>{icon}</div></div> }
 function Status({children}) { return <span className={'status '+(String(children||'').toLowerCase().replaceAll(' ','-'))}>{children}</span> }
 
 function App(){
- const [page,setPage]=useState('Overview');
- const [panel,setPanel]=useState('Admin');
+ const [page,setPage]=useState('SaaS Tenants');
+ const [panel,setPanel]=useState('SaaS Owner');
  const [modal,setModal]=useState(false);
  const [notice,setNotice]=useState('');
  const [darkMode,setDarkMode]=useState(false);
@@ -65,12 +73,21 @@ function App(){
 
  const action=(m)=>{setNotice(m);setTimeout(()=>setNotice(''),2600)};
  const [btnLabel, subtitle] = pageLabels[page] || ['', ''];
+ const activeNav = panel === 'SaaS Owner' ? saasNav : nav;
+ const activeIcons = panel === 'SaaS Owner' ? saasIcons : icons;
 
  return <div className="app">
-  <aside><div className="brand"><div className="brandMark">R</div><div>Ride<span>Flow</span><small>Mobility platform</small></div></div>
-  <div className="switcher"><button className={panel==='Admin'?'chosen':''} onClick={()=>setPanel('Admin')}>Admin</button><button className={panel==='Customer'?'chosen':''} onClick={()=>setPanel('Customer')}>Customer</button><button className={panel==='Driver'?'chosen':''} onClick={()=>setPanel('Driver')}>Driver</button></div>
-  <nav>{nav.map((n,i)=><button key={n} className={page===n?'active':''} onClick={()=>setPage(n)}><i>{icons[i]}</i>{n}{n==='Support'&&<b>8</b>}</button>)}</nav>
-  <div className="sideBottom"><div className="help">✦ <span><strong>Need help?</strong><br/>View knowledge base</span></div><div className="userProfile"><div className="avatar">VK</div><div className="user"><strong>Vishal Kumar</strong><small>Super admin</small></div><span>⌄</span></div></div></aside>
+  <aside>
+   <div className="brand"><div className="brandMark">R</div><div>Ride<span>Flow</span><small>Mobility platform</small></div></div>
+   <div className="switcher">
+    <button className={panel==='SaaS Owner'?'chosen':''} onClick={()=>{setPanel('SaaS Owner');setPage('SaaS Tenants');}}>SaaS Owner</button>
+    <button className={panel==='Admin'?'chosen':''} onClick={()=>{setPanel('Admin');setPage('Overview');}}>Tenant Admin</button>
+    <button className={panel==='Customer'?'chosen':''} onClick={()=>setPanel('Customer')}>Customer</button>
+    <button className={panel==='Driver'?'chosen':''} onClick={()=>setPanel('Driver')}>Driver</button>
+   </div>
+   <nav>{activeNav.map((n,i)=><button key={n} className={page===n?'active':''} onClick={()=>setPage(n)}><i>{activeIcons[i]}</i>{n}{n==='Support'&&<b>8</b>}</button>)}</nav>
+   <div className="sideBottom"><div className="help">✦ <span><strong>Need help?</strong><br/>View knowledge base</span></div><div className="userProfile"><div className="avatar">VK</div><div className="user"><strong>Vishal Kumar</strong><small>{panel === 'SaaS Owner' ? 'SaaS Platform Owner' : 'Super admin'}</small></div><span>⌄</span></div></div>
+  </aside>
   <main>
     <header>
       <div>
@@ -86,7 +103,7 @@ function App(){
       </div>
     </header>
     {notice&&<div className="toast">✓ {notice}</div>}
-    {panel==='Customer'?<CustomerDemo action={action}/>:panel==='Driver'?<DriverDemo action={action}/>:<ProAdmin page={page} action={action} ridesList={ridesList} setRidesList={setRidesList}/>} 
+    {panel==='SaaS Owner'?<SaasSuperAdminView page={page} action={action}/>:panel==='Customer'?<CustomerDemo action={action}/>:panel==='Driver'?<DriverDemo action={action}/>:<ProAdmin page={page} action={action} ridesList={ridesList} setRidesList={setRidesList}/>} 
   </main>
   {modal&&<BookingModal close={()=>setModal(false)} onAddBooking={addBooking}/>} 
  </div>

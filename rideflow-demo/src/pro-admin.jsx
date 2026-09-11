@@ -637,3 +637,282 @@ function Overview({ action, rowsData, ridesList }) {
   </>
  );
 }
+
+const initialTenants = [
+ { id: 'TNT-101', name: 'MetroCabs Chandigarh', slug: 'chandigarh.rideflow.io', plan: 'Enterprise ($799/mo)', fee: '$799', drivers: '340', rides: '4,820/day', status: 'Active' },
+ { id: 'TNT-102', name: 'UberLocal Mohali', slug: 'mohali.rideflow.io', plan: 'Growth ($299/mo)', fee: '$299', drivers: '185', rides: '2,140/day', status: 'Active' },
+ { id: 'TNT-103', name: 'CityFleet Delhi NCR', slug: 'delhi.rideflow.io', plan: 'Enterprise ($799/mo)', fee: '$799', drivers: '620', rides: '7,910/day', status: 'Active' },
+ { id: 'TNT-104', name: 'Royal Ride Zirakpur', slug: 'zirakpur.rideflow.io', plan: 'Starter ($99/mo)', fee: '$99', drivers: '45', rides: '380/day', status: 'Trialing' },
+ { id: 'TNT-105', name: 'Highland Cabs Shimla', slug: 'shimla.rideflow.io', plan: 'Starter ($99/mo)', fee: '$99', drivers: '28', rides: '190/day', status: 'Maintenance' },
+];
+
+export function SaasSuperAdminView({ page, action }) {
+ const [tenants, setTenants] = useState(initialTenants);
+ const [showTenantModal, setShowTenantModal] = useState(false);
+ const [featureFlags, setFeatureFlags] = useState([
+  { key: 'whatsapp', name: 'WhatsApp OTP & SMS Gateway', desc: 'Automated 2FA and ride updates via WhatsApp Business API', active: true, plan: 'All Tenants' },
+  { key: 'whitelabel', name: 'Custom Subdomain & White-Label Domain Routing', desc: 'Allows cab operators to connect custom domain (e.g. cabs.client.com)', active: true, plan: 'Enterprise' },
+  { key: 'geofencing', name: 'Interactive Leaflet Polygon Geofencing Engine', desc: 'Custom service area polygons and surge zone boundary calculator', active: true, plan: 'All Tenants' },
+  { key: 'payouts', name: 'Automated RazorpayX Driver Payout Settlement', desc: 'Direct bank transfers for driver earnings on trip completion', active: true, plan: 'Growth & Enterprise' },
+  { key: 'sos', name: 'Real-Time SOS Command Centre & Incident Escalation', desc: '24/7 emergency dispatch alert matrix', active: true, plan: 'All Tenants' },
+  { key: 'aisurge', name: 'AI Surge Pricing & Demand Heatmap Predictor', desc: 'Machine learning surge rates based on historical trip demand', active: false, plan: 'Enterprise (Beta)' },
+ ]);
+
+ const handleAddTenant = (newTenant) => {
+  setTenants(prev => [newTenant, ...prev]);
+  setShowTenantModal(false);
+  action(`SaaS Tenant ${newTenant.name} provisioned successfully on ${newTenant.slug}`);
+ };
+
+ const toggleStatus = (id) => {
+  setTenants(prev => prev.map(t => {
+   if (t.id === id) {
+    const nextStatus = t.status === 'Active' ? 'Suspended' : 'Active';
+    action(`Tenant ${t.name} instance set to ${nextStatus}`);
+    return { ...t, status: nextStatus };
+   }
+   return t;
+  }));
+ };
+
+ const toggleFeature = (key) => {
+  setFeatureFlags(prev => prev.map(f => {
+   if (f.key === key) {
+    const next = !f.active;
+    action(`Global Feature "${f.name}" ${next ? 'enabled' : 'disabled'}`);
+    return { ...f, active: next };
+   }
+   return f;
+  }));
+ };
+
+ const totalMrr = tenants.reduce((acc, t) => acc + parseInt(t.fee.replace('$', '')), 0) + 42000;
+
+ return (
+  <div className="proAdmin">
+   {page === 'SaaS Tenants' && (
+    <>
+     <div className="pCards">
+      <Mini label="SaaS Monthly MRR" value={`$${totalMrr.toLocaleString()}/mo`} note="+14.8% growth" icon="💰" />
+      <Mini label="Onboarded Tenants" value={String(tenants.length)} note={`${tenants.filter(t => t.status === 'Active').length} active cab operators`} icon="🌐" />
+      <Mini label="Global Driver Pool" value="2,480" note="Across all instances" icon="♙" />
+      <Mini label="Platform Rides Today" value="28,450" note="Peak throughput" icon="⌖" />
+     </div>
+
+     <section className="pPanel">
+      <div className="pTableTop" style={{ alignItems: 'center', marginBottom: '8px' }}>
+       <h3>SaaS Client Tenants Directory</h3>
+       <button className="primary" onClick={() => setShowTenantModal(true)}>+ Provision SaaS Tenant</button>
+      </div>
+      <p style={{ margin: '0 0 16px', color: '#64748b', fontSize: '12px' }}>Monitor independent client instances, manage billing tiers, and control platform access.</p>
+      <div className="pTableWrap">
+       <table>
+        <thead>
+         <tr>
+          <th>Tenant ID</th>
+          <th>Cab Company</th>
+          <th>Subdomain</th>
+          <th>Subscription Tier</th>
+          <th>Monthly Fee</th>
+          <th>Drivers</th>
+          <th>Daily Rides</th>
+          <th>Status</th>
+          <th>Actions</th>
+         </tr>
+        </thead>
+        <tbody>
+         {tenants.map(t => (
+          <tr key={t.id}>
+           <td><strong>{t.id}</strong></td>
+           <td><strong>{t.name}</strong></td>
+           <td><code style={{ background: '#eef2f6', padding: '3px 6px', borderRadius: '4px', fontSize: '11px' }}>{t.slug}</code></td>
+           <td>{t.plan}</td>
+           <td><strong>{t.fee}/mo</strong></td>
+           <td>{t.drivers}</td>
+           <td>{t.rides}</td>
+           <td><Badge>{t.status}</Badge></td>
+           <td>
+            <div style={{ display: 'flex', gap: '6px' }}>
+             <button className="pView" onClick={() => action(`Switched context to tenant ${t.name}`)}>Manage →</button>
+             <button className="pView" onClick={() => toggleStatus(t.id)} style={{ color: t.status === 'Active' ? '#dc2626' : '#16a34a' }}>
+              {t.status === 'Active' ? 'Suspend' : 'Activate'}
+             </button>
+            </div>
+           </td>
+          </tr>
+         ))}
+        </tbody>
+       </table>
+      </div>
+     </section>
+    </>
+   )}
+
+   {page === 'Subscriptions & MRR' && (
+    <>
+     <div className="pCards">
+      <Mini label="Total ARR" value={`$${(totalMrr * 12).toLocaleString()}/yr`} note="Annualized revenue" icon="💰" />
+      <Mini label="Avg Revenue / Tenant" value={`$${Math.round(totalMrr / tenants.length)}/mo`} note="ARPU metric" icon="↗" />
+      <Mini label="Enterprise Tier" value="6 Tenants" note="$799/mo rate" icon="▣" />
+      <Mini label="Growth Tier" value="8 Tenants" note="$299/mo rate" icon="◇" />
+     </div>
+
+     <div className="pReport">
+      <div>
+       <h3>SaaS Recurring Revenue Growth</h3>
+       <b>${totalMrr.toLocaleString()}/mo</b>
+       <span>+18.4% MRR vs previous month</span>
+       <div className="pBars">{[50, 65, 72, 80, 88, 95, 100].map((x, i) => <i style={{ height: x + '%' }} key={i} />)}</div>
+       <small>Mar &nbsp; Apr &nbsp; May &nbsp; Jun &nbsp; Jul &nbsp; Aug &nbsp; Sep</small>
+      </div>
+      <div>
+       <h3>Plan Breakdown</h3>
+       <div style={{ display: 'grid', gap: '10px', marginTop: '12px' }}>
+        <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+         <b style={{ display: 'block', fontSize: '13px' }}>Enterprise Tier ($799/mo)</b>
+         <span style={{ fontSize: '11px', color: '#64748b' }}>Custom domain, unlimited drivers, priority SOS dispatch</span>
+        </div>
+        <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+         <b style={{ display: 'block', fontSize: '13px' }}>Growth Tier ($299/mo)</b>
+         <span style={{ fontSize: '11px', color: '#64748b' }}>Up to 200 drivers, Razorpay payouts, multi-zone fare editor</span>
+        </div>
+        <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+         <b style={{ display: 'block', fontSize: '13px' }}>Starter Tier ($99/mo)</b>
+         <span style={{ fontSize: '11px', color: '#64748b' }}>Up to 50 drivers, core dispatch, basic reporting</span>
+        </div>
+       </div>
+      </div>
+     </div>
+    </>
+   )}
+
+   {page === 'Global Features' && (
+    <section className="pPanel">
+     <h3>Global SaaS Feature Flags & Module Matrix</h3>
+     <p style={{ margin: '0 0 16px', color: '#64748b', fontSize: '12px' }}>Enable or disable high-value SaaS features across all client instances or per plan tier.</p>
+     <div style={{ display: 'grid', gap: '12px', marginTop: '16px' }}>
+      {featureFlags.map(f => (
+       <div key={f.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px', background: '#f8fafc', borderRadius: '9px', border: '1px solid #e2e8f0' }}>
+        <div>
+         <b style={{ fontSize: '13px', display: 'block' }}>{f.name} <Badge>{f.plan}</Badge></b>
+         <span style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', display: 'block' }}>{f.desc}</span>
+        </div>
+        <button
+         onClick={() => toggleFeature(f.key)}
+         style={{
+          padding: '8px 16px',
+          borderRadius: '20px',
+          border: '0',
+          fontWeight: 'bold',
+          fontSize: '11px',
+          cursor: 'pointer',
+          background: f.active ? '#e5f7ed' : '#fee2e2',
+          color: f.active ? '#16a34a' : '#dc2626'
+         }}
+        >
+         {f.active ? '● Enabled' : '○ Disabled'}
+        </button>
+       </div>
+      ))}
+     </div>
+    </section>
+   )}
+
+   {page === 'Platform Health' && (
+    <>
+     <div className="pCards">
+      <Mini label="API Gateway Latency" value="18 ms" note="Healthy 🟢" icon="⚡" />
+      <Mini label="Request Throughput" value="4,820 req/s" note="Optimal capacity" icon="↗" />
+      <Mini label="Database Cluster" value="99.99%" note="Multi-region PostgreSQL" icon="🖥️" />
+      <Mini label="Active WebSockets" value="3,410" note="Live trip tracking" icon="⌖" />
+     </div>
+
+     <section className="pPanel">
+      <h3>Live Cloud Infrastructure Audit Log</h3>
+      <div style={{ background: '#0f172a', color: '#38bdf8', padding: '14px', borderRadius: '8px', fontFamily: 'monospace', fontSize: '11px', lineHeight: '1.7', marginTop: '12px' }}>
+       <div>[SYSTEM 09:54:02] Cloudflare Edge Routing: All 18 tenant subdomains SSL certificate verified.</div>
+       <div>[DATABASE 09:54:08] Multi-Tenant PostgreSQL Connection Pool: Active connections 42 / Max 500.</div>
+       <div>[WEBSOCKET 09:54:14] Socket.io Cluster: 3,410 drivers & customers connected. 0 dropped packets.</div>
+       <div>[REDIS 09:54:20] Geofence Cache: Chandigarh, Mohali & Zirakpur polygons loaded in 1.2ms.</div>
+       <div>[PAYMENTS 09:54:28] Razorpay Webhook Worker: 124 transactions processed cleanly.</div>
+      </div>
+     </section>
+    </>
+   )}
+
+   {page === 'SaaS Settings' && (
+    <section className="pPanel controlPanel">
+     <div>
+      <h3>SaaS Platform Global Configuration</h3>
+      <p>Configure global API keys, white-label branding, and platform commission policies.</p>
+     </div>
+     <div className="controlFields">
+      <label>Platform Name<input defaultValue="RideFlow SaaS" /></label>
+      <label>SuperAdmin Email<input defaultValue="superadmin@rideflow.io" /></label>
+      <label>Default Currency<input defaultValue="USD ($) / INR (₹)" /></label>
+     </div>
+     <div className="controlActions">
+      <button className="primary" onClick={() => action('Global SaaS settings updated successfully')}>Save Global Settings</button>
+     </div>
+    </section>
+   )}
+
+   {showTenantModal && <TenantModal close={() => setShowTenantModal(false)} onAddTenant={handleAddTenant} />}
+  </div>
+ );
+}
+
+function TenantModal({ close, onAddTenant }) {
+ const [name, setName] = useState('CityCabs Gurgaon');
+ const [slug, setSlug] = useState('gurgaon.rideflow.io');
+ const [plan, setPlan] = useState('Growth ($299/mo)');
+ const [fee, setFee] = useState('$299');
+ const [drivers, setDrivers] = useState('120');
+
+ const handleConfirm = () => {
+  const id = 'TNT-' + Math.floor(100 + Math.random() * 900);
+  onAddTenant({
+   id,
+   name,
+   slug,
+   plan,
+   fee,
+   drivers,
+   rides: '1,250/day',
+   status: 'Active'
+  });
+ };
+
+ return (
+  <div className="modalBack">
+   <div className="modal" style={{ width: '520px' }}>
+    <button className="close" onClick={close}>×</button>
+    <span className="step">SAAS PROVISIONING · STEP 1 OF 1</span>
+    <h2>Provision New SaaS Client Tenant</h2>
+    <label>Cab Operator / Company Name
+     <input value={name} onChange={e => setName(e.target.value)} />
+    </label>
+    <label>Subdomain Routing Slug
+     <input value={slug} onChange={e => setSlug(e.target.value)} />
+    </label>
+    <label>Subscription Tier & Pricing Plan
+     <select value={plan} onChange={e => {
+      setPlan(e.target.value);
+      setFee(e.target.value.includes('799') ? '$799' : e.target.value.includes('299') ? '$299' : '$99');
+     }}>
+      <option>Starter ($99/mo)</option>
+      <option>Growth ($299/mo)</option>
+      <option>Enterprise ($799/mo)</option>
+     </select>
+    </label>
+    <label>Initial Driver Fleet Limit
+     <input value={drivers} onChange={e => setDrivers(e.target.value)} />
+    </label>
+    <div className="modalActions">
+     <button onClick={close}>Cancel</button>
+     <button className="primary" onClick={handleConfirm}>Provision Instance</button>
+    </div>
+   </div>
+  </div>
+ );
+}

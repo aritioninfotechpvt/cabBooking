@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import Select from 'react-select';
 import Swal from 'sweetalert2';
 import L from 'leaflet';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon, Circle } from 'react-leaflet';
 
 const initialRows = {
  'Bookings': [['RF-10842','Aarav Sharma','Prime Sedan','Rakesh Kumar','₹342','In progress'],['RF-10841','Simran Kaur','Auto','Gurpreet Singh','₹186','Completed'],['RF-10840','Karan Mehta','Bike','Aman Verma','₹94','Driver arriving']],
@@ -164,29 +164,48 @@ function LeafletLiveMap() {
  );
 }
 
-function LeafletZoneMap() {
+function LeafletZoneMap({ rainSurge = 0, airportRush = false }) {
  const position = [30.6900, 76.7600];
  const chdPolygon = [[30.7600, 76.7500], [30.7600, 76.8100], [30.7100, 76.8100], [30.7100, 76.7500]];
  const mhlPolygon = [[30.7100, 76.6800], [30.7100, 76.7500], [30.6500, 76.7500], [30.6500, 76.6800]];
  const zrkPolygon = [[30.6600, 76.7800], [30.6600, 76.8500], [30.6100, 76.8500], [30.6100, 76.7800]];
 
+ const sec17Surge = (2.2 + rainSurge).toFixed(1);
+ const airportSurge = (airportRush ? 2.8 : 2.5 + rainSurge).toFixed(1);
+ const mohaliSurge = (1.8 + rainSurge).toFixed(1);
+
  return (
-  <div className="zoneMap" style={{ height: '330px', borderRadius: '13px', overflow: 'hidden' }}>
+  <div className="zoneMap" style={{ height: '360px', borderRadius: '13px', overflow: 'hidden', position: 'relative' }}>
    <MapContainer center={position} zoom={11} scrollWheelZoom={false}>
     <TileLayer
      attribution='&copy; OpenStreetMap'
      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
     />
-    <Polygon positions={chdPolygon} pathOptions={{ color: '#218d63', fillColor: '#218d63', fillOpacity: 0.35 }}>
+    <Polygon positions={chdPolygon} pathOptions={{ color: '#218d63', fillColor: '#218d63', fillOpacity: 0.2 }}>
      <Popup><b>Chandigarh Zone</b><br />3 active fare zones</Popup>
     </Polygon>
-    <Polygon positions={mhlPolygon} pathOptions={{ color: '#8e44ad', fillColor: '#8e44ad', fillOpacity: 0.35 }}>
+    <Polygon positions={mhlPolygon} pathOptions={{ color: '#8e44ad', fillColor: '#8e44ad', fillOpacity: 0.2 }}>
      <Popup><b>Mohali Zone</b><br />2 active fare zones</Popup>
     </Polygon>
-    <Polygon positions={zrkPolygon} pathOptions={{ color: '#e67e22', fillColor: '#e67e22', fillOpacity: 0.35 }}>
+    <Polygon positions={zrkPolygon} pathOptions={{ color: '#e67e22', fillColor: '#e67e22', fillOpacity: 0.2 }}>
      <Popup><b>Zirakpur Zone</b><br />1 active fare zone</Popup>
     </Polygon>
+
+    {/* AI Demand Heatmap Rings */}
+    <Circle center={[30.7415, 76.7791]} radius={1300} pathOptions={{ color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.45 }}>
+     <Popup>🔥 <b>Sector 17 Demand Heatmap</b><br />Surge: <strong>{sec17Surge}x</strong><br />Requests: 48 / 8 cabs</Popup>
+    </Circle>
+    <Circle center={[30.6698, 76.7865]} radius={1500} pathOptions={{ color: '#dc2626', fillColor: '#dc2626', fillOpacity: 0.5 }}>
+     <Popup>✈️ <b>Airport T3 Rush Cluster</b><br />Surge: <strong>{airportSurge}x</strong><br />Requests: 64 / 10 cabs</Popup>
+    </Circle>
+    <Circle center={[30.7100, 76.7100]} radius={1100} pathOptions={{ color: '#f97316', fillColor: '#f97316', fillOpacity: 0.4 }}>
+     <Popup>⚡ <b>Mohali Tech Hub Heatmap</b><br />Surge: <strong>{mohaliSurge}x</strong><br />Requests: 32 / 12 cabs</Popup>
+    </Circle>
    </MapContainer>
+   <div className="mapLegend" style={{ background: 'rgba(15, 23, 42, 0.88)', color: '#fff', padding: '8px 12px', borderRadius: '8px', position: 'absolute', bottom: '10px', right: '10px', zIndex: 1000, fontSize: '11px' }}>
+    <b>🔥 AI Demand Heatmap Layer</b><br />
+    <span>🔴 High Surge (&gt;2.0x) &nbsp; 🟠 Moderate (1.5x)</span>
+   </div>
   </div>
  );
 }
@@ -520,6 +539,10 @@ function Live({ action, ridesList }) {
 function Fare({ action, fareRules, onOpenFareEditor }) {
  const [selectedCity, setSelectedCity] = useState('Chandigarh');
  const [selectedCategory, setSelectedCategory] = useState('Prime Sedan');
+ const [rainSurge, setRainSurge] = useState(0);
+ const [airportRush, setAirportRush] = useState(false);
+ const [surgeCap, setSurgeCap] = useState('3.0x');
+ const [aiAutoSurge, setAiAutoSurge] = useState(true);
 
  const cityData = {
   'Chandigarh': {
@@ -529,7 +552,7 @@ function Fare({ action, fareRules, onOpenFareEditor }) {
     'E-Rickshaw': { icon: '🛺⚡', base: '20', perKm: '7', perMin: '1', minFare: '30', nightAllowance: '15% Surcharge', waitingCharge: '₹1.50/min', airportSurcharge: '₹0', surge: '1.1x' },
     'Auto Rickshaw': { icon: '🛺', base: '30', perKm: '10', perMin: '1.5', minFare: '45', nightAllowance: '20% Surcharge', waitingCharge: '₹2.00/min', airportSurcharge: '₹30', surge: '1.2x' },
     'Bike Taxi': { icon: '🏍️', base: '25', perKm: '6', perMin: '1', minFare: '35', nightAllowance: '15% Surcharge', waitingCharge: '₹1.00/min', airportSurcharge: '₹20', surge: '1.3x' },
-    'Prime Sedan': { icon: '🚕', base: fareRules.base || '55', perKm: fareRules.perKm || '14', perMin: fareRules.perMin || '2', minFare: fareRules.minFare || '99', nightAllowance: fareRules.nightAllowance || '25% Surcharge', waitingCharge: fareRules.waitingCharge || '₹2.50/min', airportSurcharge: fareRules.airportSurcharge || '₹80', surge: fareRules.surge || '1.5x' },
+    'Prime Sedan': { icon: '🚕', base: fareRules.base || '55', perKm: fareRules.perKm || '14', perMin: fareRules.perMin || '2', minFare: fareRules.minFare || '99', nightAllowance: fareRules.nightAllowance || '25% Surcharge', waitingCharge: fareRules.waitingCharge || '₹2.50/min', airportSurcharge: fareRules.airportSurcharge || '₹80', surge: (parseFloat(fareRules.surge || '1.5') + rainSurge + (airportRush ? 0.8 : 0)).toFixed(1) + 'x' },
     'Outstation SUV': { icon: '🚙', base: '250', perKm: '18', perMin: '3', minFare: '500', nightAllowance: '₹250 / Night', waitingCharge: '₹3.50/min', airportSurcharge: 'State Toll Extra', surge: '1.2x' }
    }
   },
@@ -586,9 +609,120 @@ function Fare({ action, fareRules, onOpenFareEditor }) {
   <>
    <ModuleHeader title="Fares & zones" subtitle="Configure city-wise rate cards, location zone pricing, night allowance and surge rules." button="+ Add city zone" action={action} />
 
+   {/* AI Surge Heatmap & Dynamic Zone Pricing Control Panel */}
+   <section className="pPanel" style={{ marginBottom: '16px' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+     <div>
+      <h3 style={{ margin: 0 }}>🔥 AI Dynamic Surge Heatmap & Zone Engine</h3>
+      <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>Real-time demand heat ring calculator with automated surge multipliers and scenario simulation tools.</p>
+     </div>
+     <button
+      onClick={() => {
+       const next = !aiAutoSurge;
+       setAiAutoSurge(next);
+       Swal.fire({
+        title: `AI Auto-Surge ${next ? 'Activated' : 'Disabled'}`,
+        text: next ? 'AI engine will dynamically calculate surge based on demand heatmaps.' : 'Automated surge paused. Manual rates active.',
+        icon: next ? 'success' : 'warning',
+        confirmButtonColor: '#218d63'
+       });
+       action(`AI Auto-Surge Engine ${next ? 'enabled' : 'disabled'}`);
+      }}
+      style={{
+       padding: '6px 14px',
+       borderRadius: '20px',
+       border: '0',
+       fontWeight: 'bold',
+       fontSize: '11px',
+       cursor: 'pointer',
+       background: aiAutoSurge ? '#e5f7ed' : '#fee2e2',
+       color: aiAutoSurge ? '#16a34a' : '#dc2626'
+      }}
+     >
+      {aiAutoSurge ? '● AI Auto-Surge Active' : '○ Manual Override Mode'}
+     </button>
+    </div>
+
+    {/* Scenario Simulation Quick Action Buttons */}
+    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '14px' }}>
+     <button
+      className="primary"
+      onClick={() => {
+       setRainSurge(0.5);
+       Swal.fire({
+        title: '🌧️ Heavy Rain Surge Activated',
+        text: 'Added +0.5x surge multiplier across all geofenced city zones due to monsoon rain.',
+        icon: 'info',
+        confirmButtonColor: '#0284c7'
+       });
+       action('Simulated Heavy Rain Surge (+0.5x multiplier)');
+      }}
+      style={{ background: '#0284c7', borderColor: '#0284c7', fontSize: '11px', padding: '6px 12px' }}
+     >
+      🌧️ Simulate Rain Surge (+0.5x)
+     </button>
+
+     <button
+      className="primary"
+      onClick={() => {
+       setAirportRush(true);
+       Swal.fire({
+        title: '✈️ Airport Peak Arrival Surge',
+        text: 'Airport T3 hub surge set to 2.8x due to 4 flight landings in 30 minutes.',
+        icon: 'warning',
+        confirmButtonColor: '#ea580c'
+       });
+       action('Simulated Airport Flight Arrival Rush (2.8x)');
+      }}
+      style={{ background: '#ea580c', borderColor: '#ea580c', fontSize: '11px', padding: '6px 12px' }}
+     >
+      ✈️ Simulate Airport Flight Rush (2.8x)
+     </button>
+
+     <button
+      className="primary"
+      onClick={() => {
+       setRainSurge(0);
+       setAirportRush(false);
+       Swal.fire({
+        title: '🔄 Surge Rates Reset',
+        text: 'All demand surge rates returned to standard 1.0x baseline.',
+        icon: 'success',
+        confirmButtonColor: '#16a34a'
+       });
+       action('Reset surge heatmap to standard 1.0x baseline');
+      }}
+      style={{ background: '#475569', borderColor: '#475569', fontSize: '11px', padding: '6px 12px' }}
+     >
+      🔄 Reset Heatmap Surcharges
+     </button>
+    </div>
+
+    {/* Surge Control Fields */}
+    <div className="controlFields" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+     <label>Maximum Surge Cap
+      <select value={surgeCap} onChange={e => {
+       setSurgeCap(e.target.value);
+       action(`Global Surge Cap updated to ${e.target.value}`);
+      }}>
+       <option>2.0x Surcharge Limit</option>
+       <option>2.5x Surcharge Limit</option>
+       <option>3.0x Surcharge Limit</option>
+       <option>3.5x Enterprise Max</option>
+      </select>
+     </label>
+     <label>Unfulfilled Demand Sensitivity
+      <input defaultValue="15 pending requests / zone" />
+     </label>
+     <label>Night Shift Auto-Surge Trigger
+      <input defaultValue="10:00 PM - 05:00 AM (+20%)" />
+     </label>
+    </div>
+   </section>
+
    {/* City / Location Selector Header Bar */}
    <div style={{ background: '#ffffff', padding: '14px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '16px' }} className="dark-theme-panel">
-    <div style={{ display: 'flex', justifyContent: 'space-between', itemsCenter: 'center', marginBottom: '10px' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
      <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📍 Select City / Operational Location:</span>
      <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: '600' }}>● Active Location: <strong>{selectedCity}</strong> ({activeCity.tier})</span>
     </div>
@@ -641,7 +775,7 @@ function Fare({ action, fareRules, onOpenFareEditor }) {
    </div>
 
    <div className="pSplit">
-    <LeafletZoneMap />
+    <LeafletZoneMap rainSurge={rainSurge} airportRush={airportRush} />
     <section className="pPanel pRule">
      <h3>{activeFare.icon} {selectedCategory} · {selectedCity} Rate Card</h3>
      <p>{activeCity.zones}</p>

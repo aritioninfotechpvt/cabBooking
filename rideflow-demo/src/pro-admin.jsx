@@ -110,7 +110,7 @@ function Mini({ label, value, note, icon }) {
 const createDivIcon = (emoji, bg = '#218d63') => {
  return L.divIcon({
   className: 'custom-leaflet-marker',
-  html: `<div style="background:${bg};color:#fff;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:17px;box-shadow:0 4px 10px rgba(0,0,0,0.3);border:2px solid #fff;">${emoji}</div>`,
+  html: `<div style="background:${bg};color:#fff;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:14px;box-shadow:0 4px 10px rgba(0,0,0,0.3);border:2px solid #fff;">${emoji}</div>`,
   iconSize: [34, 34],
   iconAnchor: [17, 17],
   popupAnchor: [0, -17]

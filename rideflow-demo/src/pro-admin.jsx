@@ -819,16 +819,48 @@ function AccountingPage({ action, rowsData, onOpenGenericModal }) {
     <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '16px' }}>Export 1-click compliant GST tax ledgers, GSTR-1 sales returns, and driver TDS returns for CA audit.</p>
     
     <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-     <button className="primary" onClick={() => action('Exported GSTR-1 sales return in JSON & Excel format')} style={{ padding: '8px 16px', fontSize: '12px' }}>
+     <button className="primary" onClick={() => {
+      Swal.fire({
+       title: '📊 GSTR-1 Tax Return Exported',
+       text: 'Compliant B2C sales return ledger downloaded in JSON & Excel format for CA filing.',
+       icon: 'success',
+       confirmButtonColor: '#218d63'
+      });
+      action('Exported GSTR-1 sales return in JSON & Excel format');
+     }} style={{ padding: '8px 16px', fontSize: '12px' }}>
       📊 Export GSTR-1 (JSON / Excel)
      </button>
-     <button className="primary" onClick={() => action('Generated GSTR-3B monthly tax summary report')} style={{ background: '#0284c7', borderColor: '#0284c7', padding: '8px 16px', fontSize: '12px' }}>
+     <button className="primary" onClick={() => {
+      Swal.fire({
+       title: '📈 GSTR-3B Tax Summary Ready',
+       text: 'Monthly tax liability breakdown summary generated (Output Tax: ₹1,12,450).',
+       icon: 'success',
+       confirmButtonColor: '#0284c7'
+      });
+      action('Generated GSTR-3B monthly tax summary report');
+     }} style={{ background: '#0284c7', borderColor: '#0284c7', padding: '8px 16px', fontSize: '12px' }}>
       📈 Export GSTR-3B Summary
      </button>
-     <button className="primary" onClick={() => action('Downloaded Form 26Q quarterly driver TDS return')} style={{ background: '#7c3aed', borderColor: '#7c3aed', padding: '8px 16px', fontSize: '12px' }}>
+     <button className="primary" onClick={() => {
+      Swal.fire({
+       title: '📑 Form 26Q TDS Return Generated',
+       text: 'Quarterly driver Section 194C withholding tax statement ready for Income Tax portal.',
+       icon: 'success',
+       confirmButtonColor: '#7c3aed'
+      });
+      action('Downloaded Form 26Q quarterly driver TDS return');
+     }} style={{ background: '#7c3aed', borderColor: '#7c3aed', padding: '8px 16px', fontSize: '12px' }}>
       📑 Form 26Q TDS Return
      </button>
-     <button className="primary" onClick={() => action('Downloaded complete GST & TDS audit zip package')} style={{ background: '#475569', borderColor: '#475569', padding: '8px 16px', fontSize: '12px' }}>
+     <button className="primary" onClick={() => {
+      Swal.fire({
+       title: '📦 CA Audit Package Downloaded',
+       text: 'Full ZIP archive containing customer ride tax invoices, SaaS GST, and driver TDS ledgers.',
+       icon: 'success',
+       confirmButtonColor: '#475569'
+      });
+      action('Downloaded complete GST & TDS audit zip package');
+     }} style={{ background: '#475569', borderColor: '#475569', padding: '8px 16px', fontSize: '12px' }}>
       📦 Download Audit Package (.ZIP)
      </button>
     </div>

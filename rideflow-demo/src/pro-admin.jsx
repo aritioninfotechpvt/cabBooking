@@ -532,6 +532,83 @@ function Reports({ action, rowsData }) {
  );
 }
 
+function CommissionsPage({ action, rowsData }) {
+ const [commType, setCommType] = useState('Percentage');
+ const [baseRate, setBaseRate] = useState(18);
+ const [flatFee, setFlatFee] = useState(15);
+ const [sampleFare, setSampleFare] = useState(350);
+
+ const operatorCommission = commType === 'Percentage' 
+   ? (sampleFare * (baseRate / 100))
+   : flatFee;
+
+ const driverPayout = sampleFare - operatorCommission;
+ const saasPlatformFee = sampleFare * 0.035;
+
+ return (
+  <div className="adminModule">
+   <div className="moduleHeadInline">
+    <div>
+     <h2>Per-Ride Commission Strategy & Rule Engine</h2>
+     <p>Configure percentage or flat commission rates per completed ride across vehicle categories.</p>
+    </div>
+    <button className="primary" onClick={() => action('New Commission Rule published')}>+ Create Commission Rule</button>
+   </div>
+
+   <div className="moduleStats">
+    <Mini label="Default Ride Rate" value={commType === 'Percentage' ? `${baseRate}%` : `₹${flatFee}/ride`} note="Applies to standard rides" icon="₹" />
+    <Mini label="Average Driver Take-Home" value={`${Math.max(0, Math.round((driverPayout / sampleFare) * 100))}%`} note={`₹${driverPayout.toFixed(2)} payout on ₹${sampleFare} ride`} icon="↗" />
+    <Mini label="SaaS Platform Revenue Share" value="3.5%" note={`₹${saasPlatformFee.toFixed(2)} / ride to SaaS Owner`} icon="👑" />
+   </div>
+
+   <section className="pPanel" style={{ marginBottom: '20px' }}>
+    <h3>Per-Ride Commission Calculator & Settings</h3>
+    <p style={{ fontSize: '12px', color: '#78849a', marginBottom: '16px' }}>Adjust global parameters to calculate real-time per-ride earnings distribution</p>
+
+    <div className="controlFields" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+     <label>Commission Mode
+      <select value={commType} onChange={e => setCommType(e.target.value)}>
+       <option>Percentage (%)</option>
+       <option>Flat Fee (₹ / ride)</option>
+       <option>Hybrid Tiered Rate</option>
+      </select>
+     </label>
+
+     {commType === 'Percentage' ? (
+      <label>Commission Percentage (%)
+       <input type="number" value={baseRate} onChange={e => setBaseRate(Number(e.target.value))} />
+      </label>
+     ) : (
+      <label>Flat Fee Amount (₹ / ride)
+       <input type="number" value={flatFee} onChange={e => setFlatFee(Number(e.target.value))} />
+      </label>
+     )}
+
+     <label>Sample Ride Fare for Live Simulation (₹)
+      <input type="number" value={sampleFare} onChange={e => setSampleFare(Number(e.target.value))} />
+     </label>
+    </div>
+
+    <div style={{ marginTop: '20px', background: '#f8fafc', padding: '16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+     <strong style={{ fontSize: '13px', display: 'block', marginBottom: '10px' }}>📊 Live Per-Ride Financial Breakdown:</strong>
+     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', fontSize: '12px' }}>
+      <div><span style={{ color: '#64748b' }}>Total Ride Fare</span><br /><b style={{ fontSize: '14px' }}>₹{sampleFare}</b></div>
+      <div><span style={{ color: '#16a34a' }}>Cab Operator Commission</span><br /><b style={{ fontSize: '14px', color: '#16a34a' }}>₹{operatorCommission.toFixed(2)}</b></div>
+      <div><span style={{ color: '#2563eb' }}>Driver Net Payout</span><br /><b style={{ fontSize: '14px', color: '#2563eb' }}>₹{driverPayout.toFixed(2)}</b></div>
+      <div><span style={{ color: '#9333ea' }}>SaaS Owner Share (3.5%)</span><br /><b style={{ fontSize: '14px', color: '#9333ea' }}>₹{saasPlatformFee.toFixed(2)}</b></div>
+     </div>
+    </div>
+
+    <div className="controlActions" style={{ marginTop: '16px' }}>
+     <button className="primary" onClick={() => action(`Updated default per-ride commission to ${commType === 'Percentage' ? baseRate + '%' : '₹' + flatFee}`)}>Save Per-Ride Commission Policy</button>
+    </div>
+   </section>
+
+   <DataTable page="Commissions" rowsData={rowsData} action={action} />
+  </div>
+ );
+}
+
 function ControlPanel({ page, action }) {
  if (!['Payments & payouts', 'Commissions', 'Notifications', 'Safety & SOS', 'Support', 'Roles & settings'].includes(page)) return null;
  const content = {
@@ -562,6 +639,7 @@ function Standard({ page, rowsData, action, ridesList, fareRules, onOpenFareEdit
  if (page === 'Live rides') return <Live action={action} ridesList={ridesList} />;
  if (page === 'Fares & zones') return <Fare action={action} fareRules={fareRules} onOpenFareEditor={onOpenFareEditor} />;
  if (page === 'Reports') return <Reports action={action} rowsData={rowsData} />;
+ if (page === 'Commissions') return <CommissionsPage action={action} rowsData={rowsData} />;
  const [button, subtitle] = labels[page] || ['+ New item', 'Manage this area'];
  return (
   <>
@@ -843,16 +921,19 @@ export function SaasSuperAdminView({ page, action }) {
    {page === 'SaaS Settings' && (
     <section className="pPanel controlPanel">
      <div>
-      <h3>SaaS Platform Global Configuration</h3>
-      <p>Configure global API keys, white-label branding, and platform commission policies.</p>
+      <h3>SaaS Platform Global Configuration & Commission Policies</h3>
+      <p>Configure global API keys, white-label branding, and SaaS owner platform commission share per ride.</p>
      </div>
-     <div className="controlFields">
+     <div className="controlFields" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
       <label>Platform Name<input defaultValue="RideFlow SaaS" /></label>
       <label>SuperAdmin Email<input defaultValue="superadmin@rideflow.io" /></label>
       <label>Default Currency<input defaultValue="USD ($) / INR (₹)" /></label>
+      <label>SaaS Take-Rate Per Ride (%)<input defaultValue="3.5%" /></label>
+      <label>Minimum SaaS Fee Per Ride (₹)<input defaultValue="₹5.00 / ride" /></label>
+      <label>SaaS Settlement Schedule<input defaultValue="Daily Auto-Sweep" /></label>
      </div>
      <div className="controlActions">
-      <button className="primary" onClick={() => action('Global SaaS settings updated successfully')}>Save Global Settings</button>
+      <button className="primary" onClick={() => action('Global SaaS per-ride commission policy updated successfully')}>Save Global Settings & Commission Policy</button>
      </div>
     </section>
    )}

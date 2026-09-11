@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.dart_tool/
+.idea/
+.vscode/
+*.zip
+generated_images/
+build/

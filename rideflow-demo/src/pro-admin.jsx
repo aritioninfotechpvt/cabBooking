@@ -488,6 +488,97 @@ function KycPage({ page, rowsData, action, onOpenKycModal }) {
     <Mini label="Document expiring" value="6" note="Next 30 days" icon="!" />
     <Mini label="Approval time" value="18 min" note="Average today" icon="◷" />
    </div>
+
+   {/* Driver Performance & Star Rating Scorecard */}
+   {page === 'Drivers & KYC' && (
+    <section className="pPanel" style={{ marginBottom: '20px' }}>
+     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+      <div>
+       <h3 style={{ margin: 0 }}>🌟 Fleet Driver Performance & Rating Scorecard</h3>
+       <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>Track driver customer feedback, trip fulfillment ratios, and service quality ratings.</p>
+      </div>
+      <div style={{ background: '#f8fafc', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px', fontWeight: 'bold' }} className="dark-theme-panel">
+       Fleet Average: <span style={{ color: '#eab308' }}>4.86 ★</span> (1,284 ratings)
+      </div>
+     </div>
+
+     {/* Driver Performance Cards */}
+     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+      <div style={{ background: '#ffffff', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }} className="dark-theme-panel">
+       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+        <b style={{ fontSize: '13px' }}>Rakesh Kumar</b>
+        <span style={{ fontSize: '12px', color: '#eab308', fontWeight: 'bold' }}>4.92 ★</span>
+       </div>
+       <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '8px' }}>Prime Sedan · PB 65 AB 2183 | 412 Trips</div>
+       <div style={{ fontSize: '11px', background: '#f1f5f9', padding: '6px', borderRadius: '6px', marginBottom: '10px', color: '#334155' }}>
+        💬 <em>"Very polite driver, clean cab, arrived on time."</em>
+       </div>
+       <div style={{ display: 'flex', gap: '6px' }}>
+        <button className="primary" onClick={() => {
+         Swal.fire({
+          title: '🌟 Performance Bonus Sent',
+          text: '₹500 performance reward credited to Rakesh Kumar\'s driver wallet.',
+          icon: 'success',
+          confirmButtonColor: '#218d63'
+         });
+         action('Credited ₹500 performance reward to Rakesh Kumar');
+        }} style={{ padding: '5px 10px', fontSize: '11px', flex: 1 }}>
+         🎁 Reward Driver
+        </button>
+       </div>
+      </div>
+
+      <div style={{ background: '#ffffff', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }} className="dark-theme-panel">
+       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+        <b style={{ fontSize: '13px' }}>Gurpreet Singh</b>
+        <span style={{ fontSize: '12px', color: '#eab308', fontWeight: 'bold' }}>4.88 ★</span>
+       </div>
+       <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '8px' }}>Auto Rickshaw · PB 65 EX 9091 | 320 Trips</div>
+       <div style={{ fontSize: '11px', background: '#f1f5f9', padding: '6px', borderRadius: '6px', marginBottom: '10px', color: '#334155' }}>
+        💬 <em>"Smooth ride, knows all Mohali shortcuts!"</em>
+       </div>
+       <div style={{ display: 'flex', gap: '6px' }}>
+        <button className="primary" onClick={() => {
+         Swal.fire({
+          title: '🌟 Performance Bonus Sent',
+          text: '₹350 performance reward credited to Gurpreet Singh\'s driver wallet.',
+          icon: 'success',
+          confirmButtonColor: '#218d63'
+         });
+         action('Credited ₹350 performance reward to Gurpreet Singh');
+        }} style={{ padding: '5px 10px', fontSize: '11px', flex: 1 }}>
+         🎁 Reward Driver
+        </button>
+       </div>
+      </div>
+
+      <div style={{ background: '#ffffff', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }} className="dark-theme-panel">
+       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+        <b style={{ fontSize: '13px' }}>Aman Verma</b>
+        <span style={{ fontSize: '12px', color: '#eab308', fontWeight: 'bold' }}>4.65 ★</span>
+       </div>
+       <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '8px' }}>Bike Taxi · PB 65 BX 4012 | 184 Trips</div>
+       <div style={{ fontSize: '11px', background: '#f1f5f9', padding: '6px', borderRadius: '6px', marginBottom: '10px', color: '#334155' }}>
+        💬 <em>"Quick pickup, provided clean extra helmet."</em>
+       </div>
+       <div style={{ display: 'flex', gap: '6px' }}>
+        <button onClick={() => {
+         Swal.fire({
+          title: '⚠️ Service Notice Sent',
+          text: 'Performance & customer feedback review notice sent to Aman Verma.',
+          icon: 'info',
+          confirmButtonColor: '#0284c7'
+         });
+         action('Sent service feedback notice to Aman Verma');
+        }} style={{ padding: '5px 10px', fontSize: '11px', flex: 1, background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#475569', borderRadius: '6px', cursor: 'pointer' }}>
+         📩 Quality Advisory
+        </button>
+       </div>
+      </div>
+     </div>
+    </section>
+   )}
+
    <div className="pSplit">
     <Workflow title="Driver approval workflow" items={['Mobile OTP & profile', 'Driving licence validation', 'RC, insurance & PUC', 'Bank / PAN verification', 'Admin approval and activation']} />
     <section className="pPanel pReview">
@@ -1054,6 +1145,64 @@ function Standard({ page, rowsData, action, ridesList, fareRules, onOpenFareEdit
     <Mini label="Active" value={page === 'Safety & SOS' ? '0 alerts' : '36'} note="Current status" icon="◉" />
     <Mini label="Needs action" value={page === 'Commissions' ? '3 rules' : '6'} note="Review required" icon="!" />
    </div>
+
+   {/* Fleet Maintenance & Compliance Radar */}
+   {page === 'Vehicles' && (
+    <section className="pPanel" style={{ marginBottom: '20px' }}>
+     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+      <div>
+       <h3 style={{ margin: 0 }}>🛺 Fleet Maintenance & Document Compliance Radar</h3>
+       <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>Monitor vehicle registration (RC), insurance policies, and PUC fitness certificates across your fleet.</p>
+      </div>
+      <div style={{ display: 'flex', gap: '8px' }}>
+       <button className="primary" onClick={() => {
+        Swal.fire({
+         title: '📲 Renewal Alerts Dispatched',
+         text: 'Automated SMS & Push document renewal notices sent to drivers with expiring RC/Insurance.',
+         icon: 'success',
+         confirmButtonColor: '#218d63'
+        });
+        action('Dispatched automated document renewal notices to drivers');
+       }} style={{ fontSize: '11px', padding: '6px 12px' }}>
+        📲 Send Renewal Alerts
+       </button>
+       <button className="primary" onClick={() => {
+        Swal.fire({
+         title: '📑 Fleet Compliance Audit Downloaded',
+         text: 'Vehicle fitness & RC/PUC compliance ledger exported in Excel format.',
+         icon: 'info',
+         confirmButtonColor: '#0284c7'
+        });
+        action('Exported Fleet Compliance Audit report');
+       }} style={{ background: '#0284c7', borderColor: '#0284c7', fontSize: '11px', padding: '6px 12px' }}>
+        📑 Export Compliance Audit
+       </button>
+      </div>
+     </div>
+
+     {/* Compliance Radar Health Cards */}
+     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+      <div style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }} className="dark-theme-panel">
+       <b style={{ color: '#16a34a', fontSize: '13px', display: 'block' }}>🟢 Fully Compliant Vehicles</b>
+       <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#15803d' }}>34 Vehicles (94%)</span>
+       <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#64748b' }}>RC, PUC & Insurance fully up to date</p>
+      </div>
+
+      <div style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }} className="dark-theme-panel">
+       <b style={{ color: '#ea580c', fontSize: '13px', display: 'block' }}>🟠 Insurance Expiring Soon</b>
+       <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#c2410c' }}>2 Vehicles (Aman Verma, Rajesh Saini)</span>
+       <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#64748b' }}>Policy expires in next 7-14 days</p>
+      </div>
+
+      <div style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }} className="dark-theme-panel">
+       <b style={{ color: '#dc2626', fontSize: '13px', display: 'block' }}>🔴 Action Needed / Inspection Due</b>
+       <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#b91c1c' }}>1 Vehicle (PB 65 EX 9091)</span>
+       <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#64748b' }}>PUC renewal required before dispatch</p>
+      </div>
+     </div>
+    </section>
+   )}
+
    {page === 'Notifications' && <Workflow title="Campaign flow" items={['Select audience segment', 'Choose Push, SMS or Email', 'Review scheduled delivery', 'View delivery and click metrics']} />}
    {page === 'Payments & payouts' && <Workflow title="Payout protection flow" items={['Validate earning ledger', 'Verify bank account', 'Finance approval', 'Release and notify recipient']} />}
    {page === 'Safety & SOS' && <Workflow title="Emergency response flow" items={['SOS received', 'Call rider and driver', 'Track trip and contact emergency number', 'Create incident outcome']} />}

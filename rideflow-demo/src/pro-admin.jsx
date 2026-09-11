@@ -21,7 +21,7 @@ const initialRows = {
  'Service catalogue': [['Prime Sedan','Cab','4 seats','Base ₹55 | ₹14/km','Enabled'],['Auto Rickshaw','Auto','3 seats','Base ₹30 | ₹10/km','Enabled'],['E-Rickshaw (Electric)','E-Rickshaw','4 seats','Base ₹20 | ₹7/km','Enabled'],['Bike Taxi','Bike','1 rider','Base ₹25 | ₹6/km','Enabled'],['Outstation SUV','Outstation','6 seats','Base ₹250 | ₹18/km','Enabled'],['Rental Hatchback','Rental','4 seats','Base ₹499 | 8 hrs','Enabled']],
  'Cities & geo fences': [['Chandigarh','3 service zones','Airport zone','Active'],['Mohali','2 service zones','Railway station','Active'],['Zirakpur','1 service zone','No restricted zone','Active']],
  'Wallet & ledger': [['WLT-8121','Customer credit','Aarav Sharma','+ ₹120','Completed'],['WLT-8119','Driver deduction','Rakesh Kumar','− ₹42','Completed'],['WLT-8117','Referral reward','Simran Kaur','+ ₹75','Pending']],
- 'Coupons & referrals': [['WELCOME50','Coupon','First ride','482 uses','Active'],['REF-VISHAL','Customer referral','₹75 credit','28 conversions','Active'],['DRV-RAKESH','Driver referral','₹500 reward','4 conversions','Active']],
+ 'Coupons & referrals': [['WELCOME50','Coupon','₹50 off','30-Sep-2026','482 / 1000 uses','Active'],['REF-VISHAL','Customer referral','₹75 credit','31-Dec-2026','28 conversions','Active'],['DRV-RAKESH','Driver referral','₹500 reward','31-Dec-2026','4 conversions','Active']],
  'Audit logs': [['AUD-8042','Vishal Kumar','Approved driver KYC','Rakesh Kumar','Today, 09:42'],['AUD-8038','Finance Team','Released payout','PYO-1472','Today, 08:14'],['AUD-8030','Operations','Updated fare rule','Chandigarh sedan','Yesterday']],
  'Integrations & compliance': [['Google Maps','Maps / routes / places','Connected','Active'],['Razorpay','Payments & refunds','Sandbox','Active'],['SMS / WhatsApp','OTP & notifications','Configure keys','Review'],['GST & tax','Invoice settings','18% GST','Active']],
 };
@@ -43,7 +43,7 @@ const cols = {
  'Service catalogue':['Service Name','Category','Capacity','Pricing Structure','Status'],
  'Cities & geo fences':['City','Coverage','Special zone','Status'],
  'Wallet & ledger':['Reference','Type','Account','Amount','Status'],
- 'Coupons & referrals':['Code','Type','Reward','Performance','Status'],
+ 'Coupons & referrals':['Code / Promo','Type','Reward / Offer','Expiration Date','Usage Tracker','Status'],
  'Audit logs':['Log ID','Actor','Action','Target','Timestamp'],
  'Integrations & compliance':['Service','Use','Configuration','Status']
 };
@@ -1322,8 +1322,9 @@ function GenericItemModal({ page, close, onAddItem }) {
   'Coupons & referrals': [
    { key: 'code', label: 'Promo / Coupon Code', placeholder: 'e.g. FESTIVE30', default: 'FESTIVE30' },
    { key: 'type', label: 'Promotion Type', type: 'select', options: ['Coupon', 'Customer Referral', 'Driver Referral'] },
-   { key: 'reward', label: 'Discount / Reward', placeholder: 'e.g. 30% off (up to ₹100)', default: '30% off' },
-   { key: 'performance', label: 'Usage Limit / Count', placeholder: 'e.g. 0 / 500 uses', default: '0 uses' },
+   { key: 'reward', label: 'Discount / Reward Amount', placeholder: 'e.g. 30% off (up to ₹100)', default: '30% off' },
+   { key: 'expiry', label: 'Expiration Date (Valid Until)', placeholder: 'e.g. 31-Dec-2026', default: '31-Dec-2026' },
+   { key: 'usage', label: 'Usage Tracker & Redemption Cap', placeholder: 'e.g. 0 / 500 uses', default: '0 / 500 uses' },
    { key: 'status', label: 'Status', type: 'select', options: ['Active', 'Scheduled', 'Expired'] }
   ],
   'Notifications': [

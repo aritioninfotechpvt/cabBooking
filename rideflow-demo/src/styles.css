@@ -36,3 +36,187 @@ h1, h2, h3, h4, h5, h6,
 .detailDrawer h2, .moduleHeadInline h2, .demoNote h2, .modal h2 {
   font-size: 14px !important;
 }
+
+/* Portal Authentication Overlay & Cards */
+.authPortalOverlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at top right, #1e293b, #0f172a, #090d16);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.authPortalCard {
+  background: #ffffff;
+  width: 100%;
+  max-width: 680px;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35);
+  border: 1px solid #e2e8f0;
+}
+
+.dark-theme .authPortalCard {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+}
+
+.authBrandHeader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.dark-theme .authBrandHeader {
+  border-color: #334155 !important;
+}
+
+.portalSelectorGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+@media(max-width: 640px) {
+  .portalSelectorGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.portalCardItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.portalCardItem:hover {
+  border-color: #218d63;
+  background: #f0fdf4;
+}
+
+.portalCardItem.selected {
+  border-color: #218d63;
+  background: #e6f4ed;
+  box-shadow: 0 0 0 1px #218d63;
+}
+
+.dark-theme .portalCardItem {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+.dark-theme .portalCardItem:hover {
+  border-color: #218d63 !important;
+  background: #162a22 !important;
+}
+
+.dark-theme .portalCardItem.selected {
+  border-color: #218d63 !important;
+  background: #143528 !important;
+}
+
+.portalIcon {
+  font-size: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
+}
+
+.dark-theme .portalIcon {
+  background: #1e293b !important;
+}
+
+.authFormSection {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.dark-theme .authFormSection {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+.authFormSection label {
+  font-size: 11px;
+  font-weight: 700;
+  display: block;
+  margin-top: 12px;
+  color: #475569;
+}
+
+.dark-theme .authFormSection label {
+  color: #94a3b8 !important;
+}
+
+.authFormSection input {
+  width: 100%;
+  display: block;
+  margin-top: 5px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font: 13px 'Inter', sans-serif;
+  background: #ffffff;
+}
+
+.dark-theme .authFormSection input {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+/* Sidebar Portal Badge & Logout Button */
+.portalBadge {
+  background: #1e2d46;
+  border: 1px solid #2b3b5a;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 0 5px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #66d19a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logoutBtn {
+  width: 100%;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #f8fafc;
+  padding: 9px;
+  border-radius: 8px;
+  font: 600 11px 'Inter', sans-serif;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.2s ease;
+}
+
+.logoutBtn:hover {
+  background: #ec6b67;
+  border-color: #ec6b67;
+  color: #ffffff;
+}
+

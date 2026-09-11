@@ -64,7 +64,17 @@ const pageLabels = {
  'Vehicle Inspection': ['Report issue', 'Vehicle maintenance checklist & fuel records']
 };
 
+function Stat({label, value, change, icon, tone}) { return <div className="stat"><div><p>{label}</p><h2>{value}</h2><span className={change?.startsWith('+') ? 'up':'muted'}>{change}</span></div><div className={'statIcon '+tone}>{icon}</div></div> }
+function Status({children}) { return <span className={'status '+(String(children||'').toLowerCase().replaceAll(' ','-'))}>{children}</span> }
+
 function App(){
+ const [session, setSession] = useState({
+  isAuthenticated: false,
+  role: null,
+  email: '',
+  name: '',
+  avatar: ''
+ });
  const [page,setPage]=useState('SaaS Tenants');
  const [panel,setPanel]=useState('SaaS Owner');
  const [modal,setModal]=useState(false);
@@ -80,6 +90,31 @@ function App(){
   }
  },[darkMode]);
 
+ const handleLogin = (role, email, name, avatar, defaultPage) => {
+  setSession({
+   isAuthenticated: true,
+   role,
+   email,
+   name,
+   avatar
+  });
+  setPanel(role);
+  setPage(defaultPage);
+  action(`Signed in to ${role} Portal as ${email}`);
+ };
+
+ const handleLogout = () => {
+  setSession({
+   isAuthenticated: false,
+   role: null,
+   email: '',
+   name: '',
+   avatar: ''
+  });
+  setNotice('Logged out successfully');
+  setTimeout(() => setNotice(''), 2600);
+ };
+
  const addBooking = (newRide) => {
    setRidesList(prev => [newRide, ...prev]);
    setNotice(`Booking ${newRide.id} created successfully`);
@@ -87,6 +122,11 @@ function App(){
  };
 
  const action=(m)=>{setNotice(m);setTimeout(()=>setNotice(''),2600)};
+
+ if (!session.isAuthenticated) {
+  return <AuthPortal onLogin={handleLogin} />;
+ }
+
  const [btnLabel, subtitle] = pageLabels[page] || ['', ''];
  const activeNav = panel === 'SaaS Owner' ? saasNav : panel === 'Customer' ? customerNav : panel === 'Driver' ? driverNav : nav;
  const activeIcons = panel === 'SaaS Owner' ? saasIcons : panel === 'Customer' ? customerIcons : panel === 'Driver' ? driverIcons : icons;
@@ -94,14 +134,18 @@ function App(){
  return <div className="app">
   <aside>
    <div className="brand"><div className="brandMark">R</div><div>Ride<span>Flow</span><small>Mobility platform</small></div></div>
-   <div className="switcher">
-    <button className={panel==='SaaS Owner'?'chosen':''} onClick={()=>{setPanel('SaaS Owner');setPage('SaaS Tenants');}}>SaaS Owner</button>
-    <button className={panel==='Admin'?'chosen':''} onClick={()=>{setPanel('Admin');setPage('Overview');}}>Tenant Admin</button>
-    <button className={panel==='Customer'?'chosen':''} onClick={()=>{setPanel('Customer');setPage('Book a Ride');}}>Customer</button>
-    <button className={panel==='Driver'?'chosen':''} onClick={()=>{setPanel('Driver');setPage('Duty Console');}}>Driver</button>
+   <div className="portalBadge">
+    <span>{panel === 'SaaS Owner' ? '👑 SaaS Owner Suite' : panel === 'Customer' ? '📱 Customer Rider App' : panel === 'Driver' ? '🛺 Driver Partner App' : '🏢 Cab Operator Admin'}</span>
    </div>
    <nav>{activeNav.map((n,i)=><button key={n} className={page===n?'active':''} onClick={()=>setPage(n)}><i>{activeIcons[i]}</i>{n}{n==='Support'&&<b>8</b>}</button>)}</nav>
-   <div className="sideBottom"><div className="help">✦ <span><strong>Need help?</strong><br/>View knowledge base</span></div><div className="userProfile"><div className="avatar">VK</div><div className="user"><strong>Vishal Kumar</strong><small>{panel === 'SaaS Owner' ? 'SaaS Owner' : panel === 'Customer' ? 'Customer App' : panel === 'Driver' ? 'Driver Partner' : 'Cab Operator Admin'}</small></div><span>⌄</span></div></div>
+   <div className="sideBottom">
+    <div className="help">✦ <span><strong>Need help?</strong><br/>View knowledge base</span></div>
+    <div className="userProfile">
+     <div className="avatar">{session.avatar || 'VK'}</div>
+     <div className="user"><strong>{session.name || 'Vishal Kumar'}</strong><small>{session.email || 'user@rideflow.io'}</small></div>
+    </div>
+    <button className="logoutBtn" onClick={handleLogout} title="Sign Out & Return to Portal Selector">🔒 Logout / Switch Account</button>
+   </div>
   </aside>
   <main>
     <header>
@@ -122,6 +166,121 @@ function App(){
   </main>
   {modal&&<BookingModal close={()=>setModal(false)} onAddBooking={addBooking}/>} 
  </div>
+}
+
+function AuthPortal({ onLogin }) {
+  const [selectedPortal, setSelectedPortal] = useState('SaaS Owner');
+
+  const portals = [
+    {
+      role: 'SaaS Owner',
+      title: 'SaaS Platform Owner Portal',
+      icon: '👑',
+      badge: 'SuperAdmin Suite',
+      defaultEmail: 'owner@rideflow.io',
+      name: 'Vishal Kumar (Platform Owner)',
+      avatar: 'VK',
+      defaultPage: 'SaaS Tenants',
+      subtitle: 'Manage client tenants, subscription billing & cloud infrastructure'
+    },
+    {
+      role: 'Admin',
+      title: 'Cab Operator Admin Portal',
+      icon: '🏢',
+      badge: 'Tenant Admin',
+      defaultEmail: 'admin@metrocabs.com',
+      name: 'Rohan Sharma (MetroCabs Admin)',
+      avatar: 'RS',
+      defaultPage: 'Overview',
+      subtitle: 'Manage fleet dispatch, live rides, drivers & fare cards'
+    },
+    {
+      role: 'Customer',
+      title: 'Customer Passenger App',
+      icon: '📱',
+      badge: 'Rider Portal',
+      defaultEmail: 'aarav@gmail.com',
+      name: 'Aarav Sharma (Rider)',
+      avatar: 'AS',
+      defaultPage: 'Book a Ride',
+      subtitle: 'Book rides, track GPS drivers & view trip receipts'
+    },
+    {
+      role: 'Driver',
+      title: 'Driver Partner Console',
+      icon: '🛺',
+      badge: 'Driver App',
+      defaultEmail: 'rakesh@driver.com',
+      name: 'Rakesh Kumar (Driver Partner)',
+      avatar: 'RK',
+      defaultPage: 'Duty Console',
+      subtitle: 'Accept ride requests, duty console & daily earnings'
+    }
+  ];
+
+  return (
+    <div className="authPortalOverlay">
+      <div className="authPortalCard">
+        <div className="authBrandHeader">
+          <div className="brandMark" style={{ width: '42px', height: '42px', fontSize: '20px' }}>R</div>
+          <div>
+            <h1 style={{ fontSize: '14px', margin: 0 }}>RideFlow Mobility Platform</h1>
+            <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>Select your portal to sign in to your isolated workspace</p>
+          </div>
+        </div>
+
+        <div className="portalSelectorGrid">
+          {portals.map(p => (
+            <div
+              key={p.role}
+              className={`portalCardItem ${selectedPortal === p.role ? 'selected' : ''}`}
+              onClick={() => setSelectedPortal(p.role)}
+            >
+              <div className="portalIcon">{p.icon}</div>
+              <div>
+                <b style={{ display: 'block', fontSize: '13px' }}>{p.title}</b>
+                <small style={{ color: '#64748b', fontSize: '11px', display: 'block', marginTop: '2px' }}>{p.subtitle}</small>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {(() => {
+          const activePortal = portals.find(p => p.role === selectedPortal);
+          return (
+            <div className="authFormSection">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <span className="step">AUTHENTICATION GATEWAY · {activePortal.badge.toUpperCase()}</span>
+                <span className="pBadge active">{activePortal.role}</span>
+              </div>
+              <label>Account Email Address
+                <input defaultValue={activePortal.defaultEmail} key={activePortal.role + '-email'} />
+              </label>
+              <label>Password
+                <input type="password" defaultValue="••••••••••••" key={activePortal.role + '-pass'} />
+              </label>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+                <button
+                  className="primary"
+                  style={{ flex: 1, padding: '12px' }}
+                  onClick={() => onLogin(activePortal.role, activePortal.defaultEmail, activePortal.name, activePortal.avatar, activePortal.defaultPage)}
+                >
+                  Sign In to {activePortal.role} Panel →
+                </button>
+                <button
+                  className="outline"
+                  style={{ background: '#f8fafc' }}
+                  onClick={() => onLogin(activePortal.role, activePortal.defaultEmail, activePortal.name, activePortal.avatar, activePortal.defaultPage)}
+                >
+                  ⚡ 1-Click Demo Sign In
+                </button>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+    </div>
+  );
 }
 
 function CustomerPanelView({ page, action }) {

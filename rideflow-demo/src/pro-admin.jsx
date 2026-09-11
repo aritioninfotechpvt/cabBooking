@@ -671,7 +671,7 @@ function ControlPanel({ page, action }) {
  );
 }
 
-function Standard({ page, rowsData, action, ridesList, fareRules, onOpenFareEditor, onOpenKycModal, onOpenVehicleModal }) {
+function Standard({ page, rowsData, action, ridesList, fareRules, onOpenFareEditor, onOpenKycModal, onOpenVehicleModal, onOpenGenericModal }) {
  if (page === 'Drivers & KYC' || page === 'Customer onboarding') return <KycPage page={page} rowsData={rowsData} action={action} onOpenKycModal={onOpenKycModal} />;
  if (page === 'Live rides') return <Live action={action} ridesList={ridesList} />;
  if (page === 'Fares & zones') return <Fare action={action} fareRules={fareRules} onOpenFareEditor={onOpenFareEditor} />;
@@ -688,7 +688,7 @@ function Standard({ page, rowsData, action, ridesList, fareRules, onOpenFareEdit
     {page === 'Vehicles' ? (
      <button className="primary" onClick={onOpenVehicleModal}>+ Add Vehicle to Fleet</button>
     ) : (
-     <button className="primary" onClick={() => action(button + ' requested')}>+ {button}</button>
+     <button className="primary" onClick={() => onOpenGenericModal(page)}>+ {button}</button>
     )}
    </div>
    <div className="pCards">
@@ -710,6 +710,7 @@ export function ProAdmin({ page, action, ridesList, setRidesList, actionTrigger 
  const [showKycModal, setShowKycModal] = useState(false);
  const [showFareModal, setShowFareModal] = useState(false);
  const [showVehicleModal, setShowVehicleModal] = useState(false);
+ const [activeGenericModalPage, setActiveGenericModalPage] = useState(null);
  const [fareRules, setFareRules] = useState({
   base: '55',
   perKm: '14',
@@ -724,12 +725,12 @@ export function ProAdmin({ page, action, ridesList, setRidesList, actionTrigger 
    setShowVehicleModal(true);
   } else if (actionTrigger.includes('driver') || actionTrigger === 'Add driver') {
    setShowKycModal(true);
-  } else if (actionTrigger.includes('zone') || actionTrigger.includes('city') || actionTrigger === 'Add city') {
+  } else if (actionTrigger.includes('zone') || actionTrigger.includes('pricing') || actionTrigger === 'Edit fare') {
    setShowFareModal(true);
   } else {
-   action(actionTrigger + ' requested');
+   setActiveGenericModalPage(page);
   }
- }, [actionTrigger]);
+ }, [actionTrigger, page]);
 
  const handleAddVehicle = (newVeh) => {
   const row = [newVeh.plate, newVeh.category, newVeh.driver, newVeh.compliance, newVeh.status];
@@ -739,6 +740,15 @@ export function ProAdmin({ page, action, ridesList, setRidesList, actionTrigger 
   }));
   setShowVehicleModal(false);
   action(`Vehicle ${newVeh.plate} (${newVeh.category}) added to fleet successfully`);
+ };
+
+ const handleAddGenericItem = (rowValues) => {
+  setRowsData(prev => ({
+   ...prev,
+   [activeGenericModalPage]: [rowValues, ...(prev[activeGenericModalPage] || [])]
+  }));
+  action(`New record added to ${activeGenericModalPage} successfully`);
+  setActiveGenericModalPage(null);
  };
 
  const handleKycDecision = (decision) => {
@@ -769,11 +779,13 @@ export function ProAdmin({ page, action, ridesList, setRidesList, actionTrigger 
      onOpenFareEditor={() => setShowFareModal(true)}
      onOpenKycModal={() => setShowKycModal(true)}
      onOpenVehicleModal={() => setShowVehicleModal(true)}
+     onOpenGenericModal={(p) => setActiveGenericModalPage(p)}
     />
    )}
    {showKycModal && <KycModal close={() => setShowKycModal(false)} onDecision={handleKycDecision} />}
    {showFareModal && <FareEditorModal close={() => setShowFareModal(false)} currentRules={fareRules} onSave={(updated) => { setFareRules(updated); action('Fare rules and surge rates updated successfully'); }} />}
    {showVehicleModal && <VehicleModal close={() => setShowVehicleModal(false)} onAddVehicle={handleAddVehicle} />}
+   {activeGenericModalPage && <GenericItemModal page={activeGenericModalPage} close={() => setActiveGenericModalPage(null)} onAddItem={handleAddGenericItem} />}
   </div>
  );
 }
@@ -1166,4 +1178,107 @@ function VehicleModal({ close, onAddVehicle }) {
   </div>
  );
 }
+
+function GenericItemModal({ page, close, onAddItem }) {
+ const [fieldValues, setFieldValues] = useState({});
+
+ const fieldDefs = {
+  'Cities & geo fences': [
+   { key: 'city', label: 'City / Region Name', placeholder: 'e.g. Ludhiana', default: 'Ludhiana' },
+   { key: 'coverage', label: 'Coverage Zones', placeholder: 'e.g. 4 service zones', default: '4 service zones' },
+   { key: 'specialZone', label: 'Airport / Special Zone', placeholder: 'e.g. Sahnewal Airport', default: 'Sahnewal Airport' },
+   { key: 'status', label: 'Status', type: 'select', options: ['Active', 'Pending Launch', 'Maintenance'] }
+  ],
+  'Service catalogue': [
+   { key: 'service', label: 'Service Category Name', placeholder: 'e.g. Cargo E-Rickshaw', default: 'Cargo E-Rickshaw' },
+   { key: 'type', label: 'Service Type', type: 'select', options: ['E-Rickshaw', 'Auto', 'Bike', 'Cab', 'Outstation', 'Rental'] },
+   { key: 'capacity', label: 'Seating / Capacity', placeholder: 'e.g. 4 seats', default: '4 seats' },
+   { key: 'pricing', label: 'Pricing Rate Card', placeholder: 'e.g. Base ₹25 | ₹8/km', default: 'Base ₹25 | ₹8/km' },
+   { key: 'status', label: 'Status', type: 'select', options: ['Enabled', 'Disabled'] }
+  ],
+  'Vendors & fleet': [
+   { key: 'fleet', label: 'Fleet / Vendor Name', placeholder: 'e.g. Speedo Cabs Pvt Ltd', default: 'Speedo Cabs' },
+   { key: 'drivers', label: 'Driver Count', placeholder: 'e.g. 24', default: '24' },
+   { key: 'vehicles', label: 'Vehicle Count', placeholder: 'e.g. 30', default: '30' },
+   { key: 'payout', label: 'Weekly Payout Balance', placeholder: 'e.g. ₹42,500', default: '₹42,500' },
+   { key: 'status', label: 'Compliance Status', type: 'select', options: ['Approved', 'Under Review', 'Suspended'] }
+  ],
+  'Coupons & referrals': [
+   { key: 'code', label: 'Promo / Coupon Code', placeholder: 'e.g. FESTIVE30', default: 'FESTIVE30' },
+   { key: 'type', label: 'Promotion Type', type: 'select', options: ['Coupon', 'Customer Referral', 'Driver Referral'] },
+   { key: 'reward', label: 'Discount / Reward', placeholder: 'e.g. 30% off (up to ₹100)', default: '30% off' },
+   { key: 'performance', label: 'Usage Limit / Count', placeholder: 'e.g. 0 / 500 uses', default: '0 uses' },
+   { key: 'status', label: 'Status', type: 'select', options: ['Active', 'Scheduled', 'Expired'] }
+  ],
+  'Notifications': [
+   { key: 'campaign', label: 'Campaign Title', placeholder: 'e.g. Rain Surge Discount', default: 'Rain Surge Discount' },
+   { key: 'audience', label: 'Target Audience', placeholder: 'e.g. Chandigarh Riders', default: 'All Customers' },
+   { key: 'channel', label: 'Delivery Channel', type: 'select', options: ['Push + SMS', 'Push Only', 'SMS Only', 'WhatsApp'] },
+   { key: 'schedule', label: 'Schedule Time', placeholder: 'e.g. Today, 5:00 PM', default: 'Today, 5:00 PM' },
+   { key: 'status', label: 'Status', type: 'select', options: ['Scheduled', 'Sent', 'Draft'] }
+  ],
+  'Safety & SOS': [
+   { key: 'alert', label: 'Incident Reference ID', placeholder: 'e.g. SOS-084', default: 'SOS-' + Math.floor(100 + Math.random() * 900) },
+   { key: 'ride', label: 'Ride ID', placeholder: 'e.g. RF-10842', default: 'RF-10842' },
+   { key: 'raisedBy', label: 'Raised By', type: 'select', options: ['Customer', 'Driver', 'System Monitor'] },
+   { key: 'location', label: 'Incident Location', placeholder: 'e.g. Sector 17, Chandigarh', default: 'Sector 17, Chandigarh' },
+   { key: 'priority', label: 'Priority Level', type: 'select', options: ['High', 'Medium', 'Critical'] },
+   { key: 'status', label: 'Status', type: 'select', options: ['Open', 'In Progress', 'Resolved'] }
+  ],
+  'Support': [
+   { key: 'ticket', label: 'Ticket ID', placeholder: 'e.g. SUP-3012', default: 'SUP-' + Math.floor(1000 + Math.random() * 9000) },
+   { key: 'raisedBy', label: 'Customer / Driver Name', placeholder: 'e.g. Aarav Sharma', default: 'Aarav Sharma' },
+   { key: 'subject', label: 'Issue Description', placeholder: 'e.g. Refund requested for cancelled trip', default: 'Fare discrepancy issue' },
+   { key: 'priority', label: 'Priority', type: 'select', options: ['High', 'Medium', 'Low'] },
+   { key: 'status', label: 'Status', type: 'select', options: ['Open', 'In progress', 'Resolved'] }
+  ],
+  'Roles & settings': [
+   { key: 'role', label: 'Role Name', placeholder: 'e.g. Fleet Supervisor', default: 'Fleet Supervisor' },
+   { key: 'permissions', label: 'Permission Scope', placeholder: 'e.g. Vehicles, Drivers & Dispatch', default: 'Vehicles & Drivers' },
+   { key: 'members', label: 'Assigned Staff', placeholder: 'e.g. 2 members', default: '1 member' },
+   { key: 'status', label: 'Status', type: 'select', options: ['Active', 'Draft'] }
+  ]
+ };
+
+ const currentFields = fieldDefs[page] || [
+  { key: 'title', label: 'Item Title', placeholder: 'Enter title', default: 'New ' + page + ' Item' },
+  { key: 'desc', label: 'Description', placeholder: 'Enter details', default: 'Configured by Admin' },
+  { key: 'status', label: 'Status', type: 'select', options: ['Active', 'Pending'] }
+ ];
+
+ const getValue = (f) => fieldValues[f.key] !== undefined ? fieldValues[f.key] : f.default;
+
+ const handleConfirm = () => {
+  const rowValues = currentFields.map(f => getValue(f));
+  onAddItem(rowValues);
+ };
+
+ return (
+  <div className="modalBack">
+   <div className="modal" style={{ width: '520px' }}>
+    <button className="close" onClick={close}>×</button>
+    <span className="step">MANAGEMENT ENGINE · {page.toUpperCase()}</span>
+    <h2>Add New Entry to {page}</h2>
+
+    {currentFields.map(f => (
+     <label key={f.key}>{f.label}
+      {f.type === 'select' ? (
+       <select value={getValue(f)} onChange={e => setFieldValues({ ...fieldValues, [f.key]: e.target.value })}>
+        {f.options.map(opt => <option key={opt}>{opt}</option>)}
+       </select>
+      ) : (
+       <input value={getValue(f)} onChange={e => setFieldValues({ ...fieldValues, [f.key]: e.target.value })} placeholder={f.placeholder} />
+      )}
+     </label>
+    ))}
+
+    <div className="modalActions">
+     <button onClick={close}>Cancel</button>
+     <button className="primary" onClick={handleConfirm}>Save {page} Entry</button>
+    </div>
+   </div>
+  </div>
+ );
+}
+
 

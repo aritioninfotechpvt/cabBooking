@@ -18,7 +18,7 @@ const initialRows = {
  'Support': [['SUP-2094','Aarav Sharma','Driver arrived late','Medium','Open'],['SUP-2090','Rakesh Kumar','Payout not received','High','In progress']],
  'Reports': [['Revenue by city','September 2026','CSV / PDF','Today','Ready'],['Driver payout summary','Week 37','XLSX','Today','Ready']],
  'Roles & settings': [['Super Admin','All permissions','Vishal Kumar','Active'],['Operations Manager','Rides, drivers, SOS','2 members','Active'],['Finance Executive','Payments, payouts','1 member','Active']],
- 'Service catalogue': [['Prime Sedan','Cab','4 seats','Enabled'],['Auto','Auto','3 seats','Enabled'],['Bike','Bike','1 rider','Enabled'],['Outstation SUV','Outstation','6 seats','Enabled']],
+ 'Service catalogue': [['Prime Sedan','Cab','4 seats','Base ₹55 | ₹14/km','Enabled'],['Auto Rickshaw','Auto','3 seats','Base ₹30 | ₹10/km','Enabled'],['E-Rickshaw (Electric)','E-Rickshaw','4 seats','Base ₹20 | ₹7/km','Enabled'],['Bike Taxi','Bike','1 rider','Base ₹25 | ₹6/km','Enabled'],['Outstation SUV','Outstation','6 seats','Base ₹250 | ₹18/km','Enabled'],['Rental Hatchback','Rental','4 seats','Base ₹499 | 8 hrs','Enabled']],
  'Cities & geo fences': [['Chandigarh','3 service zones','Airport zone','Active'],['Mohali','2 service zones','Railway station','Active'],['Zirakpur','1 service zone','No restricted zone','Active']],
  'Wallet & ledger': [['WLT-8121','Customer credit','Aarav Sharma','+ ₹120','Completed'],['WLT-8119','Driver deduction','Rakesh Kumar','− ₹42','Completed'],['WLT-8117','Referral reward','Simran Kaur','+ ₹75','Pending']],
  'Coupons & referrals': [['WELCOME50','Coupon','First ride','482 uses','Active'],['REF-VISHAL','Customer referral','₹75 credit','28 conversions','Active'],['DRV-RAKESH','Driver referral','₹500 reward','4 conversions','Active']],
@@ -40,7 +40,7 @@ const cols = {
  'Support':['Ticket','Raised by','Subject','Priority','Status'],
  'Reports':['Report','Period','Format','Updated','Status'],
  'Roles & settings':['Role','Permissions','Members','Status'],
- 'Service catalogue':['Service','Type','Capacity','Status'],
+ 'Service catalogue':['Service Name','Category','Capacity','Pricing Structure','Status'],
  'Cities & geo fences':['City','Coverage','Special zone','Status'],
  'Wallet & ledger':['Reference','Type','Account','Amount','Status'],
  'Coupons & referrals':['Code','Type','Reward','Performance','Status'],
@@ -479,24 +479,61 @@ function Live({ action, ridesList }) {
 }
 
 function Fare({ action, fareRules, onOpenFareEditor }) {
+ const [selectedCategory, setSelectedCategory] = useState('E-Rickshaw');
+
+ const categoryFares = {
+  'E-Rickshaw': { icon: '🛺⚡', base: '20', perKm: '7', perMin: '1', minFare: '30', surge: '1.1x (Eco Tier)' },
+  'Auto Rickshaw': { icon: '🛺', base: '30', perKm: '10', perMin: '1.5', minFare: '45', surge: '1.2x (Peak)' },
+  'Bike Taxi': { icon: '🏍️', base: '25', perKm: '6', perMin: '1', minFare: '35', surge: '1.3x (Rain Surge)' },
+  'Prime Sedan': { icon: '🚕', base: fareRules.base || '55', perKm: fareRules.perKm || '14', perMin: fareRules.perMin || '2', minFare: fareRules.minFare || '99', surge: fareRules.surge || '1.5x (High Peak)' },
+  'Outstation SUV': { icon: '🚙', base: '250', perKm: '18', perMin: '3', minFare: '500', surge: '1.2x (Weekend)' }
+ };
+
+ const activeFare = categoryFares[selectedCategory] || categoryFares['E-Rickshaw'];
+
  return (
   <>
-   <ModuleHeader title="Fares & zones" subtitle="Configure city coverage, fare cards, rental/outstation rules and surge pricing." button="+ Add city zone" action={action} />
+   <ModuleHeader title="Fares & zones" subtitle="Configure city coverage, service pricing cards (Bike, Auto, E-Rickshaw, Sedan) and surge pricing." button="+ Add service pricing rule" action={action} />
+
+   <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+    {Object.keys(categoryFares).map(cat => (
+     <button
+      key={cat}
+      onClick={() => setSelectedCategory(cat)}
+      style={{
+       border: '1px solid',
+       borderColor: selectedCategory === cat ? '#218d63' : '#e2e8f0',
+       background: selectedCategory === cat ? '#eaf8f0' : '#ffffff',
+       color: selectedCategory === cat ? '#177a53' : '#475569',
+       padding: '8px 14px',
+       borderRadius: '8px',
+       font: '600 12px Inter, sans-serif',
+       cursor: 'pointer',
+       display: 'flex',
+       alignItems: 'center',
+       gap: '6px'
+      }}
+     >
+      <span>{categoryFares[cat].icon}</span> {cat}
+     </button>
+    ))}
+   </div>
+
    <div className="pSplit">
     <LeafletZoneMap />
     <section className="pPanel pRule">
-     <h3>Prime Sedan · Chandigarh</h3>
-     <p>Local fare card configuration</p>
-     <div key="base"><span>Base fare <b>₹{fareRules.base}</b></span></div>
-     <div key="km"><span>Per km <b>₹{fareRules.perKm}</b></span></div>
-     <div key="min"><span>Per minute <b>₹{fareRules.perMin}</b></span></div>
-     <div key="minfare"><span>Minimum fare <b>₹{fareRules.minFare}</b></span></div>
-     <div key="surge"><span>Peak demand surge <b>{fareRules.surge}</b></span></div>
-     <button className="primary pFull" onClick={onOpenFareEditor}>Edit fare and surge rules</button>
+     <h3>{activeFare.icon} {selectedCategory} · Rate Card</h3>
+     <p>Chandigarh & Tri-City Pricing Structure</p>
+     <div key="base"><span>Base fare <b>₹{activeFare.base}</b></span></div>
+     <div key="km"><span>Per km rate <b>₹{activeFare.perKm}</b></span></div>
+     <div key="min"><span>Per minute rate <b>₹{activeFare.perMin}</b></span></div>
+     <div key="minfare"><span>Minimum trip fare <b>₹{activeFare.minFare}</b></span></div>
+     <div key="surge"><span>Demand surge multiplier <b>{activeFare.surge}</b></span></div>
+     <button className="primary pFull" onClick={onOpenFareEditor}>Edit {selectedCategory} Fare Card</button>
     </section>
    </div>
    <div className="pCards">
-    <Mini label="Cities live" value="3" note="All serviceable" icon="⌖" />
+    <Mini label="Services Active" value="5 categories" note="Bike, Auto, E-Rickshaw, Sedan, SUV" icon="⌖" />
     <Mini label="Service zones" value="6" note="Map polygon zones" icon="◇" />
     <Mini label="Surge rules" value="4" note="Demand based" icon="↗" />
    </div>

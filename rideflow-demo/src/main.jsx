@@ -311,10 +311,10 @@ function CustomerPanelView({ page, action }) {
             </button>
             <h3>Choose your ride</h3>
             <div className="serviceChoices">
-              {['Cab','Auto','Bike','Rental'].map(x => (
+              {['Cab', 'Auto', 'E-Rickshaw', 'Bike', 'Rental'].map(x => (
                 <button className={service===x?'sel':''} key={x} onClick={() => setService(x)}>
-                  <strong>{x==='Cab'?'🚕':x==='Auto'?'🛺':x==='Bike'?'🏍️':'🚙'}</strong>
-                  {x}<small>{x==='Cab'?'₹124':x==='Auto'?'₹78':x==='Bike'?'₹62':'From ₹499'}</small>
+                  <strong>{x==='Cab'?'🚕':x==='Auto'?'🛺':x==='E-Rickshaw'?'🛺⚡':x==='Bike'?'🏍️':'🚙'}</strong>
+                  {x}<small>{x==='Cab'?'₹124':x==='Auto'?'₹78':x==='E-Rickshaw'?'₹45':x==='Bike'?'₹62':'From ₹499'}</small>
                 </button>
               ))}
             </div>

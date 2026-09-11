@@ -11,8 +11,8 @@ const initialRides = [
   { id: 'RF-10839', customer: 'Neha Gupta', service: 'Outstation SUV', driver: '—', pickup: 'Chandigarh', drop: 'Manali', fare: '₹4,850', status: 'Searching', time: '09:08 AM' },
 ];
 
-const nav = ['Overview','Live rides','Bookings','Customer onboarding','Drivers & KYC','Vendors & fleet','Vehicles','Service catalogue','Cities & geo fences','Fares & zones','Payments & payouts','Wallet & ledger','Commissions','Coupons & referrals','Notifications','Safety & SOS','Support','Reports','Audit logs','Roles & settings','Integrations & compliance'];
-const icons = ['▦','◉','▤','♙','♧','▣','▱','◫','⌖','◇','₹','▤','%','◇','♧','!','?','↗','☷','⚙','⌁'];
+const nav = ['Overview','Live rides','Bookings','Customer onboarding','Drivers & KYC','Vendors & fleet','Vehicles','Service catalogue','Cities & geo fences','Fares & zones','Payments & payouts','Wallet & ledger','Commissions','Accounting & GST','Coupons & referrals','Notifications','Safety & SOS','Support','Reports','Audit logs','Roles & settings','Integrations & compliance'];
+const icons = ['▦','◉','▤','♙','♧','▣','▱','◫','⌖','◇','₹','▤','%','🧾','◇','♧','!','?','↗','☷','⚙','⌁'];
 
 const saasNav = ['SaaS Tenants', 'Subscriptions & MRR', 'Global Features', 'Platform Health', 'SaaS Settings'];
 const saasIcons = ['🌐', '💰', '⚡', '🖥️', '⚙'];
@@ -30,6 +30,7 @@ const pageLabels = {
  'Vehicles':['Add vehicle','Manage vehicle compliance'],
  'Payments & payouts':['Create payout','Approve refunds and settlements'],
  'Commissions':['Create rule','Set commission and incentive rules'],
+ 'Accounting & GST':['Generate invoice','Tax compliance, customer ride GST invoices, driver TDS 194C & GSTR export'],
  'Coupons':['Create coupon','Promotions and referral discounts'],
  'Notifications':['Create campaign','Push, SMS and email delivery'],
  'Safety & SOS':['Open safety case','Live safety incidents and disputes'],

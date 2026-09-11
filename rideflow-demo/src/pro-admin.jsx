@@ -12,6 +12,13 @@ const initialRows = {
  'Vehicles': [['PB 65 AB 2183','Prime Sedan','Rakesh Kumar','Verified','Active'],['PB 65 EX 9091','Bike','Aman Verma','Insurance expiring','Review']],
  'Payments & payouts': [['PAY-88142','Ride payment','Aarav Sharma','₹342','UPI','Success'],['PYO-1472','Driver payout','Rakesh Kumar','₹5,480','Bank','Pending'],['REF-1277','Refund','Karan Mehta','₹94','Wallet','Processed']],
  'Commissions': [['Chandigarh standard','Independent drivers','Cab','18%','Active'],['Maple fleet agreement','Maple Fleet','All','12%','Active'],['Bike launch incentive','Zirakpur drivers','Bike','10%','Scheduled']],
+ 'Accounting & GST': [
+  ['INV-9082','Customer Tax Invoice (5% GST)','Aarav Sharma (Rider)','₹290.00','₹14.50 (5% GST)','Filed (GSTR-1)'],
+  ['INV-9081','Cab Operator Commission (18% GST)','Maple Cabs (Vendor)','₹1,450.00','₹261.00 (18% GST)','Generated'],
+  ['TDS-4012','Driver TDS Settlement (1% 194C)','Rakesh Kumar (Driver)','₹12,400.00','₹124.00 (1% TDS)','Remitted'],
+  ['INV-9080','Customer Tax Invoice (5% GST)','Simran Kaur (Rider)','₹158.00','₹7.90 (5% GST)','Filed (GSTR-1)'],
+  ['INV-9079','Customer Tax Invoice (5% GST)','Karan Mehta (Rider)','₹89.50','₹4.48 (5% GST)','Filed (GSTR-1)']
+ ],
  'Coupons': [['WELCOME50','₹50 off','First ride','482 / 1000','Active'],['AIRPORT20','20% off','Airport','134 / 500','Active']],
  'Notifications': [['Weekend airport offer','8,420 customers','Push + SMS','Sat, 9 AM','Scheduled'],['KYC reminder','14 drivers','Push + SMS','Today, 11 AM','Sent']],
  'Safety & SOS': [['SOS-071','RF-10812','Customer','Sector 22','High','Resolved'],['DIS-244','RF-10806','Driver','Mohali Airport','Medium','Open']],
@@ -34,6 +41,7 @@ const cols = {
  'Vehicles':['Vehicle','Category','Driver','Documents','Status'],
  'Payments & payouts':['Reference','Type','User','Amount','Method','Status'],
  'Commissions':['Rule','Applies to','Service','Commission','Status'],
+ 'Accounting & GST':['Invoice / Ref ID','Invoice Type','Billed To / Entity','Taxable Value','GST / TDS Tax','Filing Status'],
  'Coupons':['Coupon','Offer','Eligibility','Usage','Status'],
  'Notifications':['Campaign','Audience','Channel','Schedule','Status'],
  'Safety & SOS':['Alert','Ride','Raised by','Location','Priority','Status'],
@@ -55,6 +63,7 @@ const labels = {
  'Vehicles':['Add vehicle','Manage vehicle compliance'],
  'Payments & payouts':['Create payout','Approve refunds and settlements'],
  'Commissions':['Create rule','Set commission and incentive rules'],
+ 'Accounting & GST':['Generate invoice','Tax compliance, customer ride GST invoices, driver TDS 194C & GSTR export'],
  'Coupons':['Create coupon','Promotions and referral discounts'],
  'Notifications':['Create campaign','Push, SMS and email delivery'],
  'Safety & SOS':['Open safety case','Live safety incidents and disputes'],
@@ -787,12 +796,79 @@ function ControlPanel({ page, action }) {
  );
 }
 
+function AccountingPage({ action, rowsData, onOpenGenericModal }) {
+ return (
+  <div className="adminModule">
+   <div className="moduleHeadInline" style={{ marginBottom: '16px' }}>
+    <div>
+     <h2>Accounting, Invoicing & GST Tax Compliance</h2>
+     <p>Customer ride tax invoices (5% GST), platform commission invoices (18% GST), driver TDS (Sec 194C @ 1%) & GSTR filing exports.</p>
+    </div>
+    <button className="primary" onClick={() => onOpenGenericModal('Accounting & GST')}>+ Generate invoice</button>
+   </div>
+
+   <div className="pCards">
+    <Mini label="Net Taxable Turnover" value="₹8,64,200" note="+14.2% YoY growth" icon="💰" />
+    <Mini label="Total GST Collected" value="₹1,12,450" note="5% Ride + 18% SaaS" icon="🧾" />
+    <Mini label="Driver TDS Remitted" value="₹14,820" note="Sec 194C @ 1%" icon="📄" />
+    <Mini label="Net Payable Liability" value="₹97,630" note="Due 20th Oct 2026" icon="⚖️" />
+   </div>
+
+   <section className="pPanel" style={{ marginBottom: '20px' }}>
+    <h3>🏛️ GSTR Tax Filing & Audit Command Centre</h3>
+    <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '16px' }}>Export 1-click compliant GST tax ledgers, GSTR-1 sales returns, and driver TDS returns for CA audit.</p>
+    
+    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+     <button className="primary" onClick={() => action('Exported GSTR-1 sales return in JSON & Excel format')} style={{ padding: '8px 16px', fontSize: '12px' }}>
+      📊 Export GSTR-1 (JSON / Excel)
+     </button>
+     <button className="primary" onClick={() => action('Generated GSTR-3B monthly tax summary report')} style={{ background: '#0284c7', borderColor: '#0284c7', padding: '8px 16px', fontSize: '12px' }}>
+      📈 Export GSTR-3B Summary
+     </button>
+     <button className="primary" onClick={() => action('Downloaded Form 26Q quarterly driver TDS return')} style={{ background: '#7c3aed', borderColor: '#7c3aed', padding: '8px 16px', fontSize: '12px' }}>
+      📑 Form 26Q TDS Return
+     </button>
+     <button className="primary" onClick={() => action('Downloaded complete GST & TDS audit zip package')} style={{ background: '#475569', borderColor: '#475569', padding: '8px 16px', fontSize: '12px' }}>
+      📦 Download Audit Package (.ZIP)
+     </button>
+    </div>
+   </section>
+
+   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '20px' }}>
+    <div style={{ background: '#ffffff', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }} className="dark-theme-panel">
+     <b style={{ fontSize: '13px', display: 'block', color: '#16a34a' }}>🚕 Passenger Transport Tax</b>
+     <span style={{ fontSize: '11px', color: '#64748b', display: 'block', margin: '4px 0 8px' }}>SAC Code: 996412</span>
+     <div style={{ fontSize: '12px', fontWeight: 'bold' }}>5% GST (CGST 2.5% + SGST 2.5%)</div>
+     <small style={{ fontSize: '11px', color: '#94a3b8' }}>B2C e-Commerce operator liability without ITC claim</small>
+    </div>
+
+    <div style={{ background: '#ffffff', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }} className="dark-theme-panel">
+     <b style={{ fontSize: '13px', display: 'block', color: '#2563eb' }}>⚡ Platform SaaS Commission</b>
+     <span style={{ fontSize: '11px', color: '#64748b', display: 'block', margin: '4px 0 8px' }}>SAC Code: 998313</span>
+     <div style={{ fontSize: '12px', fontWeight: 'bold' }}>18% GST (CGST 9% + SGST 9%)</div>
+     <small style={{ fontSize: '11px', color: '#94a3b8' }}>Platform fee levied on cab operators with full ITC eligibility</small>
+    </div>
+
+    <div style={{ background: '#ffffff', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }} className="dark-theme-panel">
+     <b style={{ fontSize: '13px', display: 'block', color: '#9333ea' }}>📄 Driver Tax Deducted at Source</b>
+     <span style={{ fontSize: '11px', color: '#64748b', display: 'block', margin: '4px 0 8px' }}>Income Tax Sec 194C</span>
+     <div style={{ fontSize: '12px', fontWeight: 'bold' }}>1% TDS on Gross Driver Payout</div>
+     <small style={{ fontSize: '11px', color: '#94a3b8' }}>Applicable when driver annual earnings exceed ₹30,000 threshold</small>
+    </div>
+   </div>
+
+   <DataTable page="Accounting & GST" rowsData={rowsData} action={action} />
+  </div>
+ );
+}
+
 function Standard({ page, rowsData, action, ridesList, fareRules, onOpenFareEditor, onOpenKycModal, onOpenVehicleModal, onOpenGenericModal }) {
  if (page === 'Drivers & KYC' || page === 'Customer onboarding') return <KycPage page={page} rowsData={rowsData} action={action} onOpenKycModal={onOpenKycModal} />;
  if (page === 'Live rides') return <Live action={action} ridesList={ridesList} />;
  if (page === 'Fares & zones') return <Fare action={action} fareRules={fareRules} onOpenFareEditor={onOpenFareEditor} />;
  if (page === 'Reports') return <Reports action={action} rowsData={rowsData} />;
  if (page === 'Commissions') return <CommissionsPage action={action} rowsData={rowsData} />;
+ if (page === 'Accounting & GST') return <AccountingPage action={action} rowsData={rowsData} onOpenGenericModal={onOpenGenericModal} />;
  const [button, subtitle] = labels[page] || ['+ New item', 'Manage this area'];
  return (
   <>
@@ -1354,6 +1430,14 @@ function GenericItemModal({ page, close, onAddItem }) {
    { key: 'permissions', label: 'Permission Scope', placeholder: 'e.g. Vehicles, Drivers & Dispatch', default: 'Vehicles & Drivers' },
    { key: 'members', label: 'Assigned Staff', placeholder: 'e.g. 2 members', default: '1 member' },
    { key: 'status', label: 'Status', type: 'select', options: ['Active', 'Draft'] }
+  ],
+  'Accounting & GST': [
+   { key: 'invId', label: 'Invoice / Ref ID', placeholder: 'e.g. INV-9085', default: 'INV-' + Math.floor(9000 + Math.random() * 900) },
+   { key: 'type', label: 'Invoice Category', type: 'select', options: ['Customer Tax Invoice (5% GST)', 'Cab Operator Commission (18% GST)', 'Driver TDS Settlement (1% 194C)'] },
+   { key: 'entity', label: 'Billed To / Entity Name', placeholder: 'e.g. Aarav Sharma', default: 'Aarav Sharma' },
+   { key: 'taxable', label: 'Taxable Amount (₹)', placeholder: 'e.g. ₹342.00', default: '₹342.00' },
+   { key: 'tax', label: 'GST / TDS Tax Value', placeholder: 'e.g. ₹17.10 (5% GST)', default: '₹17.10 (5% GST)' },
+   { key: 'status', label: 'Filing Status', type: 'select', options: ['Generated', 'Filed (GSTR-1)', 'Remitted (TDS)', 'Pending'] }
   ]
  };
 

@@ -668,11 +668,16 @@ function Live({ action, ridesList }) {
   if (el) {
    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
-  Swal.fire({
-   title: `📍 GPS Camera Locked — ${t.id}`,
-   text: `Scrolled to live moving cab ${t.plate} (${t.driver}) en-route ${t.pickup} ➔ ${t.drop}.`,
+  const Toast = Swal.mixin({
+   toast: true,
+   position: 'top-end',
+   showConfirmButton: false,
+   timer: 2500,
+   timerProgressBar: true
+  });
+  Toast.fire({
    icon: 'success',
-   confirmButtonColor: '#218d63'
+   title: `📍 GPS Map Locked — ${t.id} (${t.plate})`
   });
   action(`Focused Leaflet live moving map on cab ${t.plate} (${t.id})`);
  };

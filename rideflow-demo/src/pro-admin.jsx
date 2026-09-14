@@ -123,20 +123,47 @@ const iconBike = createDivIcon('🏍️', '#8e44ad');
 const iconPickup = createDivIcon('📍', '#27ae60');
 const iconDrop = createDivIcon('🏁', '#c0392b');
 
-function LeafletLiveMap() {
+function LeafletLiveMap({ highlightedRideId = null }) {
  const position = [30.7100, 76.7600]; // Chandigarh Metro Center
  const routePolyline = [
-  [30.7415, 76.7791], // Pickup: Sector 17
+  [30.7415, 76.7791], // Pickup: Sector 17, Chandigarh
   [30.7250, 76.7650],
   [30.6950, 76.7500],
-  [30.6698, 76.7865]  // Drop: Airport Road
+  [30.6698, 76.7865]  // Drop: Airport Road, Mohali
  ];
 
+ const [step, setStep] = useState(0);
+ const [speed, setSpeed] = useState(42);
+
+ useEffect(() => {
+  const timer = setInterval(() => {
+   setStep(prev => (prev + 1) % 300);
+   setSpeed(Math.floor(38 + Math.random() * 8));
+  }, 100);
+  return () => clearInterval(timer);
+ }, []);
+
+ // Calculate current interpolated position along 3 segments
+ const progress = step / 300; // 0 to 1
+ const segmentIndex = Math.min(Math.floor(progress * 3), 2);
+ const segmentProgress = (progress * 3) - segmentIndex;
+
+ const startPt = routePolyline[segmentIndex];
+ const endPt = routePolyline[segmentIndex + 1];
+
+ const cabLat = startPt[0] + (endPt[0] - startPt[0]) * segmentProgress;
+ const cabLng = startPt[1] + (endPt[1] - startPt[1]) * segmentProgress;
+ const cabPos = [cabLat, cabLng];
+
+ const distRemaining = ((1 - progress) * 12.4).toFixed(1);
+ const etaMinutes = Math.max(1, Math.ceil((1 - progress) * 18));
+ const pctCompleted = Math.round(progress * 100);
+
  return (
-  <div className="liveMap">
+  <div id="live-map-container" className="liveMap" style={{ position: 'relative', border: highlightedRideId ? '2.5px solid #218d63' : '1px solid #e2e8f0', borderRadius: '13px', overflow: 'hidden' }}>
    <MapContainer center={position} zoom={12} scrollWheelZoom={false}>
     <TileLayer
-     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+     attribution='&copy; <a href="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png">OpenStreetMap</a>'
      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
     />
     <Marker position={[30.7415, 76.7791]} icon={iconPickup}>
@@ -145,9 +172,20 @@ function LeafletLiveMap() {
     <Marker position={[30.6698, 76.7865]} icon={iconDrop}>
      <Popup><b>Destination:</b> Airport Road, Mohali</Popup>
     </Marker>
-    <Marker position={[30.7300, 76.7700]} icon={iconCab}>
-     <Popup><b>Cab (Rakesh Kumar)</b><br />Active Trip RF-10842</Popup>
+
+    {/* Live Moving Cab Marker */}
+    <Marker position={cabPos} icon={iconCab}>
+     <Popup>
+      <b>🚕 Cab (Rakesh Kumar) — RF-10842</b><br />
+      Speed: {speed} km/h<br />
+      Progress: {pctCompleted}% completed<br />
+      ETA: {etaMinutes} mins ({distRemaining} km remaining)
+     </Popup>
     </Marker>
+
+    {/* Pulsing GPS Target Circle around moving cab */}
+    <Circle center={cabPos} radius={highlightedRideId ? 600 : 350} pathOptions={{ color: '#218d63', fillColor: '#218d63', fillOpacity: 0.25 }} />
+
     <Marker position={[30.7046, 76.7179]} icon={iconAuto}>
      <Popup><b>Auto (Gurpreet Singh)</b><br />Completed Trip RF-10841</Popup>
     </Marker>
@@ -156,9 +194,15 @@ function LeafletLiveMap() {
     </Marker>
     <Polyline positions={routePolyline} color="#218d63" weight={5} opacity={0.85} dashArray="8, 8" />
    </MapContainer>
-   <div className="mapLegend">
-    <b>48 active rides</b>
-    <span>186 drivers online · Leaflet GPS live</span>
+
+   {/* Live Telemetry Ticker Overlay */}
+   <div className="mapLegend" style={{ background: 'rgba(15, 23, 42, 0.92)', color: '#ffffff', padding: '10px 14px', borderRadius: '10px', backdropFilter: 'blur(4px)', position: 'absolute', bottom: '12px', left: '12px', zIndex: 1000 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+     <span style={{ color: '#22c55e', fontSize: '11px', fontWeight: 'bold' }}>● REAL-TIME GPS MOVING</span>
+     <span style={{ fontSize: '11px', background: '#218d63', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>{speed} km/h</span>
+    </div>
+    <b style={{ fontSize: '12px' }}>Cab RF-10842 (Rakesh Kumar) En-Route</b><br />
+    <span style={{ fontSize: '11px', color: '#cbd5e1' }}>📍 Sector 17 ➔ Airport Road ({pctCompleted}% done · {distRemaining} km left · {etaMinutes}m ETA)</span>
    </div>
   </div>
  );
@@ -600,6 +644,7 @@ function KycPage({ page, rowsData, action, onOpenKycModal }) {
 function Live({ action, ridesList }) {
  const [searchQuery, setSearchQuery] = useState('');
  const [statusFilter, setStatusFilter] = useState('all');
+ const [highlightedRideId, setHighlightedRideId] = useState(null);
 
  const trackingDataset = [
   { id: 'RF-10842', customer: 'Aarav Sharma', service: 'Prime Sedan', driver: 'Rakesh Kumar', rating: '4.92 ★', plate: 'PB 65 AB 2183', pickup: 'Sector 17, Chandigarh', drop: 'Airport Road, Mohali', fare: '₹342', status: 'In progress', time: '09:42 AM', comment: 'Very polite driver, clean cab, arrived on time.' },
@@ -616,6 +661,21 @@ function Live({ action, ridesList }) {
    return matchesSearch && matchesStatus;
   });
  }, [searchQuery, statusFilter]);
+
+ const handleTrackCab = (t) => {
+  setHighlightedRideId(t.id);
+  const el = document.getElementById('live-map-container');
+  if (el) {
+   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  Swal.fire({
+   title: `📍 GPS Camera Locked — ${t.id}`,
+   text: `Scrolled to live moving cab ${t.plate} (${t.driver}) en-route ${t.pickup} ➔ ${t.drop}.`,
+   icon: 'success',
+   confirmButtonColor: '#218d63'
+  });
+  action(`Focused Leaflet live moving map on cab ${t.plate} (${t.id})`);
+ };
 
  return (
   <>
@@ -647,7 +707,7 @@ function Live({ action, ridesList }) {
     {/* Search Results List */}
     <div style={{ display: 'grid', gap: '10px' }}>
      {filteredTrips.map(t => (
-      <div key={t.id} style={{ background: '#ffffff', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }} className="dark-theme-panel">
+      <div key={t.id} style={{ background: '#ffffff', padding: '14px', borderRadius: '10px', border: '1.5px solid', borderColor: highlightedRideId === t.id ? '#218d63' : '#e2e8f0' }} className="dark-theme-panel">
        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
         <div>
          <strong style={{ fontSize: '13px', color: '#1e293b' }}>{t.id}</strong> · <span style={{ color: '#218d63', fontWeight: 'bold' }}>{t.service}</span> <code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '11px' }}>{t.plate}</code>
@@ -678,15 +738,7 @@ function Live({ action, ridesList }) {
        </div>
 
        <div style={{ display: 'flex', gap: '8px' }}>
-        <button className="primary" onClick={() => {
-         Swal.fire({
-          title: `📍 GPS Locked — ${t.id}`,
-          text: `Vehicle ${t.plate} (${t.driver}) active on route ${t.pickup} ➔ ${t.drop}.`,
-          icon: 'info',
-          confirmButtonColor: '#218d63'
-         });
-         action(`Focused Leaflet GPS map on cab ${t.plate} (${t.id})`);
-        }} style={{ fontSize: '11px', padding: '5px 12px' }}>
+        <button className="primary" onClick={() => handleTrackCab(t)} style={{ fontSize: '11px', padding: '5px 12px' }}>
          📍 Track Cab on GPS Map
         </button>
 
@@ -720,7 +772,7 @@ function Live({ action, ridesList }) {
    </section>
 
    <div className="pSplit live">
-    <LeafletLiveMap />
+    <LeafletLiveMap highlightedRideId={highlightedRideId} />
     <section className="pPanel pQueue">
      <h3>Dispatch queue <Badge>{ridesList.length}</Badge></h3>
      {ridesList.slice(0, 3).map((r) => (

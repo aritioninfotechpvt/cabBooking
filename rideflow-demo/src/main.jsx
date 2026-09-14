@@ -254,8 +254,12 @@ function AuthPortal({ onLogin }) {
 
         {(() => {
           const activePortal = portals.find(p => p.role === selectedPortal);
+          const handleSubmit = (e) => {
+            e.preventDefault();
+            onLogin(activePortal.role, activePortal.defaultEmail, activePortal.name, activePortal.avatar, activePortal.defaultPage);
+          };
           return (
-            <div className="authFormSection">
+            <form className="authFormSection" onSubmit={handleSubmit}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                 <span className="step">AUTHENTICATION GATEWAY · {activePortal.badge.toUpperCase()}</span>
                 <span className="pBadge active">{activePortal.role}</span>
@@ -268,13 +272,14 @@ function AuthPortal({ onLogin }) {
               </label>
               <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
                 <button
+                  type="submit"
                   className="primary"
                   style={{ flex: 1, padding: '12px' }}
-                  onClick={() => onLogin(activePortal.role, activePortal.defaultEmail, activePortal.name, activePortal.avatar, activePortal.defaultPage)}
                 >
                   Sign In to {activePortal.role} Panel →
                 </button>
                 <button
+                  type="button"
                   className="outline"
                   style={{ background: '#f8fafc' }}
                   onClick={() => onLogin(activePortal.role, activePortal.defaultEmail, activePortal.name, activePortal.avatar, activePortal.defaultPage)}
@@ -282,7 +287,7 @@ function AuthPortal({ onLogin }) {
                   ⚡ 1-Click Demo Sign In
                 </button>
               </div>
-            </div>
+            </form>
           );
         })()}
       </div>
